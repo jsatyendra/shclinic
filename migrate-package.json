@@ -1,0 +1,7 @@
+{
+    "name": "migrate-clients",
+    "version": "1.0.0",
+    "scripts": {
+        "migrate": "ts-node src/db/migrate.ts"
+    }
+}

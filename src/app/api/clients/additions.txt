@@ -1,0 +1,18 @@
+// Add lab investigations to POST endpoint
+if (client.labInvestigations && client.labInvestigations.length > 0) {
+  const insertLabInvestigation = db.prepare(`
+    INSERT INTO lab_investigations (id, client_id, testName, testDate, results, notes)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  
+  client.labInvestigations.forEach((lab) => {
+    insertLabInvestigation.run(
+      generateId(),
+      newId,
+      lab.testName,
+      lab.testDate,
+      lab.results,
+      lab.notes || ''
+    );
+  });
+}

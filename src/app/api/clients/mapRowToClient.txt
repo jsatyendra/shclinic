@@ -1,0 +1,47 @@
+// Fixed mapRowToClient function
+function mapRowToClient(client: DbClient): Client {
+  const db = getDbConnection();
+  
+  // Get health info
+  const healthInfoRows = db.prepare(
+    'SELECT key, value FROM health_info WHERE client_id = ?'
+  ).all(client.id) as HealthInfoRow[];
+  
+  const healthInfo: Record<string, string> = {};
+  healthInfoRows.forEach((row: HealthInfoRow) => {
+    healthInfo[row.key] = row.value;
+  });
+  
+  // Get medications
+  const medications = db.prepare(
+    'SELECT id, name, dosage, duration, prescribedDate FROM medications WHERE client_id = ?'
+  ).all(client.id) as Medication[];
+  
+  // Get lab investigations
+  let labInvestigations: any[] = [];
+  try {
+    labInvestigations = db.prepare(
+      'SELECT id, testName, testDate, results, notes FROM lab_investigations WHERE client_id = ?'
+    ).all(client.id);
+  } catch (err) {
+    console.error('Error fetching lab investigations:', err);
+  }
+  
+  return {
+    id: client.id,
+    client_number: client.client_number,
+    name: client.name,
+    dateOfBirth: client.dateOfBirth,
+    gender: client.gender,
+    height: client.height,
+    weight: client.weight,
+    bloodPressure: client.bloodPressure || "",
+    bloodGlucose: client.bloodGlucose || "",
+    address: client.address,
+    phoneNumber: client.phoneNumber,
+    isAcute: Boolean(client.isAcute),
+    healthInfo,
+    medications,
+    labInvestigations
+  };
+}

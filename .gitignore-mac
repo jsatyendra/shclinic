@@ -1,0 +1,111 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+
+/node_modules
+/.pnp
+.pnp._
+.yarn/_
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+
+/coverage
+
+# next.js
+
+/.next/
+/out/
+
+# production
+
+/build
+
+# misc
+
+.DS_Store
+\*.pem
+
+# debug
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log\*
+
+# local env files
+
+.env\*.local
+
+# vercel
+
+.vercel
+
+# typescript
+
+\*.tsbuildinfo
+next-env.d.ts
+
+# database
+
+src/db/clinic.db*
+src/db/backup/*.db\*
+
+# uploads
+
+uploads/\*
+!uploads/.gitkeep
+
+# logs
+
+\*.log
+dblog.txt
+
+# Mac-specific files
+
+.DS*Store
+.AppleDouble
+.LSOverride
+.*\*
+
+# Windows-specific files (keep for cross-platform compatibility)
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE files
+
+.vscode/
+.idea/
+_.swp
+_.swo
+
+# OS generated files
+
+\*~
+.Spotlight-V100
+.Trashes
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Node.js
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log\*
+
+# Package manager lock files (include one, exclude others)
+
+# Uncomment the one you use:
+
+# package-lock.json
+
+# yarn.lock
+
+# pnpm-lock.yaml

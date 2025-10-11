@@ -1,0 +1,130 @@
+{
+	"Case Taking": {
+		"Patient’s Story": "",
+		"Modalities As Applied To Each Of The Above Symptoms In The Following Order:": {
+			"Causes": "",
+			"Prodrome": "",
+			"Onset": "",
+			"Pace": "",
+			"Sequence": "",
+			"Duration": "",
+			"Character": "",
+			"Location": "",
+			"Laterality": "",
+			"Extension": "",
+			"Radiation": "",
+			"Concommitants": ""
+		},
+		"Aggrevation Or Ameliaration": {
+			"Time [Hour, Day, Night, Before Or After Midnight]": "",
+			"Periodicity": "",
+			"Season": "",
+			"Moon Phases": "",
+			"Temp And Weather": "",
+			"Chilly /Warm Blooded": "",
+			"Chilly Or Warm Blooded In Present Illness": "",
+			"Wet": "",
+			"Dry": "",
+			"Cold": "",
+			"Hot Weather": "",
+			"Weather Changes": "",
+			"Storm/Thunderstorm [Before/During/After]": "",
+			"Hot Sun": "",
+			"Wind": "",
+			"Fog": "",
+			"Snow": "",
+			"Open Air": "",
+			"Warm Room": "",
+			"Changes From One To Other": "",
+			"Stuffy/Crowded Places": "",
+			"Drafts": "",
+			"Warmth Of Bed": "",
+			"Heat Of Stove": "",
+			"Uncovering": "",
+			"Bathing [Hot/Cold/Sea]": "",
+			"Local Applications [Hot/Cold/Wet/Dry]": "",
+			"Rest/Movement [Slow/Rapid/Ascending /Descending]": "",
+			"Turning In Bed": "",
+			"Exertion": "",
+			"Walking/First Movement/After Movement": "",
+			"Car/Sea Sickness": ""
+		},
+		"Position": {
+			"Standing/Sitting [Knees Crossed, Rising From Sitting]": "",
+			"Stooping": "",
+			"Lying [On Painful Side/Back, Right Or Left Side, Abdomen, Head High Or Low, Rising From Lying]": "",
+			"Leaning Head Backward/Forward, Sidewise": "",
+			"Closing/Opening Eyes": "",
+			"Any Unusual Position Such As Knee Chest": ""
+		},
+		"External Stimuli": {
+			"Touch [Hard/Light]": "",
+			"Pressure": "",
+			"Rubbing": "",
+			"Constriction": "",
+			"Stepping": "",
+			"Light": "",
+			"Noise": "",
+			"Music": "",
+			"Conversation": "",
+			"Odors": ""
+		},
+		"Eating": {
+			"In General [Before, During, After/Hot Or Cold Or Drink]": "",
+			"Swallowing [Solids, Liquids, Empty]": "",
+			"Acids": "",
+			"Fats": "",
+			"Salt/Salty Food": "",
+			"Starches": "",
+			"Sugar/Sweets": "",
+			"Green Vegetables": "",
+			"Milk": "",
+			"Eggs": "",
+			"Meat": "",
+			"Fish": "",
+			"Oysters": "",
+			"Onions": "",
+			"Beer": "",
+			"Liquor": "",
+			"Wine": "",
+			"Coffee": "",
+			"Tea": "",
+			"Tobacco": "",
+			"Drugs": ""
+		},
+		"Thirst": {
+			"Quantity": "",
+			"Frequency Hot, Cool/Iced": "",
+			"Sour/Bitter Drink Etc": ""
+		},
+		"Sleep": {
+			"In General [Before, During, On Falling Asleep, In First Sleep, After, On Waking]": ""
+		},
+		"Menses [Before, During, After, Or Suppressed]": "",
+		"Sweat": {
+			"Hot/Cold": "",
+			"Foot Sweat": "",
+			"Partial": "",
+			"Suppressed": ""
+		},
+		"Other Discharges": {
+			"Bleeding/Coryza/Diarrhea/Vomitus/Urine/Emissions,/Leucorrhea, Suppression Of Same": "",
+			"Coition, Continence, Masturbation Etc": ""
+		},
+		"Emotions": {
+			"Anger": "",
+			"Grief": "",
+			"Mortification": "",
+			"Fear": "",
+			"Shock": "",
+			"Consolation": "",
+			"Apprehension Of Crowds": "",
+			"Anticipation": "",
+			"Suppression Of The Above": ""
+		},
+		"Pqrs Symptoms": {
+			"Symptoms": ""
+		},
+		"The Patient As A Whole": ""
+	}
+}
