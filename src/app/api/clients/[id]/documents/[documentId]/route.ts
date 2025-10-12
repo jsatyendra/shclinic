@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string; documentId: string } }
 ) {
   try {
-    const { id: clientId, documentId } = params;
+    const { id: clientId, documentId } = await params;
     
     const db = getDbConnection();
     
