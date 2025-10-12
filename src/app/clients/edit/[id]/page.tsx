@@ -25,13 +25,13 @@ interface TemplateSection {
 }
 
 interface EditClientPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditClientPage({ params }: EditClientPageProps) {
-  const id = params.id;
+  const { id } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
 

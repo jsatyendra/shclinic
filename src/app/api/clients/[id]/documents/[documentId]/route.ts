@@ -6,10 +6,10 @@ import path from "path";
 // GET endpoint to download a document
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; documentId: string } }
+  context: { params: Promise<{ id: string; documentId: string }> }
 ) {
   try {
-    const { id: clientId, documentId } = await params;
+    const { id: clientId, documentId } = await context.params;
     
     const db = getDbConnection();
     

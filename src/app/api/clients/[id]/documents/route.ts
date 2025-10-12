@@ -12,10 +12,10 @@ function generateId(): string {
 // POST endpoint to upload a document
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: clientId } = params;
+    const { id: clientId } = await context.params;
     const formData = await request.formData();
     
     const file = formData.get('file') as File;
@@ -90,10 +90,10 @@ export async function POST(
 // DELETE endpoint to remove a document
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: clientId } = params;
+    const { id: clientId } = await context.params;
     const { searchParams } = new URL(request.url);
     const documentId = searchParams.get('documentId');
     

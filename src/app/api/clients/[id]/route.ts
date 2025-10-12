@@ -83,9 +83,10 @@ function mapRowToClient(client: DbClient) {
 // GET endpoint to retrieve a specific client
 export async function GET(
   request: Request,
-  { params: { id } }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const db = getDbConnection();
     
     const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(id) as DbClient | undefined;
@@ -110,10 +111,10 @@ export async function GET(
 // PUT endpoint to update a specific client
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const updatedClient = await request.json();
     const db = getDbConnection();
     
@@ -277,10 +278,10 @@ export async function PUT(
 // DELETE endpoint to remove a specific client
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const db = getDbConnection();
     
     // Check if client exists
