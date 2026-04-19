@@ -34,10 +34,15 @@ function getDbConnection(): Database.Database {
     // Set pragmas for better performance and safety
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
+
+    // Auto-initialize schema on first connection
+    initializeDatabase();
   }
   
   return db;
-}// Initialize database tables
+}
+
+// Initialize database tables
 function initializeDatabase(): void {
   if (!isServer) {
     console.warn('[Database] Initialization skipped - client side detected');
