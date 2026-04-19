@@ -14,6 +14,7 @@ import {
 import caseTakingTemplate from "../../../../case_taking.json";
 import acuteCaseTakingTemplate from "../../../../acute_case_taking.json";
 import PDFExport from "../../../../components/PDFExport";
+import { useToast } from "../../../../components/Toast";
 
 // Define a proper type for template data
 interface TemplateValue {
@@ -34,6 +35,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
   const { id } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [client, setClient] = useState<Client | null>(null);
   const [isAcute, setIsAcute] = useState(false);
@@ -45,7 +47,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     bloodPressure: "",
     bloodGlucose: "",
     address: "",
-    phoneNumber: 0,
+    phoneNumber: "",
     followUpDate: "",
   });
   const [clientStatus, setClientStatus] = useState<
@@ -142,11 +144,11 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       } else if (parts.length === 2) {
         return Boolean(
           templateData[parts[0]] &&
-            typeof templateData[parts[0]] === "object" &&
-            Object.prototype.hasOwnProperty.call(
-              templateData[parts[0]] as Record<string, string>,
-              parts[1]
-            )
+          typeof templateData[parts[0]] === "object" &&
+          Object.prototype.hasOwnProperty.call(
+            templateData[parts[0]] as Record<string, string>,
+            parts[1],
+          ),
         );
       }
       return false;
@@ -154,7 +156,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
     const populateFields = (
       obj: Record<string, TemplateValue>,
-      prefix = ""
+      prefix = "",
     ) => {
       Object.entries(obj).forEach(([key, value]) => {
         const fieldName = prefix ? `${prefix}.${key}` : key;
@@ -209,7 +211,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     );
   }
   const handlePersonalInfoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -220,7 +222,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       today.setHours(0, 0, 0, 0); // Reset time to compare only dates
 
       if (selectedDate <= today) {
-        alert("Follow-up date must be in the future.");
+        showToast("Follow-up date must be in the future.", "warning");
         return; // Don't update the state if validation fails
       }
     }
@@ -234,7 +236,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
   };
 
   const handleHealthInfoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setHealthInfo((prev) => ({ ...prev, [name]: value }));
@@ -244,14 +246,14 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     setNewMedication((prev) => ({ ...prev, [name]: value }));
   };
   const handleLabInvestigationChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setNewLabInvestigation((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCurrentStatusChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     setCurrentStatus(e.target.value);
   };
@@ -262,7 +264,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     if (clientStatus === "Open") {
       // Show options to change to Closed or Discontinued
       const choice = window.confirm(
-        "Change case status to:\n\nOK = Closed\nCancel = Discontinued"
+        "Change case status to:\n\nOK = Closed\nCancel = Discontinued",
       );
       newStatus = choice ? "Closed" : "Discontinued";
     } else {
@@ -282,7 +284,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       }
     } catch (error) {
       console.error("Failed to update case status:", error);
-      alert("Failed to update case status. Please try again.");
+      showToast("Failed to update case status. Please try again.", "error");
     }
   };
 
@@ -302,7 +304,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     try {
       const updatedClient = await clientApi.addMedication(
         client.id,
-        medication
+        medication,
       );
       if (updatedClient) {
         setClient(updatedClient);
@@ -329,7 +331,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
       const updatedClient = await clientApi.addLabInvestigation(
         client.id,
-        labInvestigation
+        labInvestigation,
       );
 
       if (updatedClient) {
@@ -351,7 +353,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     const file = e.target.files?.[0];
 
     if (file && file.type !== "application/pdf") {
-      alert("Only PDF files are allowed.");
+      showToast("Only PDF files are allowed.", "warning");
       e.target.value = ""; // Clear the input
       setSelectedFile(null);
       return;
@@ -359,7 +361,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
     // Check file size (10MB limit)
     if (file && file.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB.");
+      showToast("File size must be less than 10MB.", "warning");
       e.target.value = ""; // Clear the input
       setSelectedFile(null);
       return;
@@ -370,7 +372,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
   const handleAddDocument = async () => {
     if (!selectedFile) {
-      alert("Please select a file to upload.");
+      showToast("Please select a file to upload.", "warning");
       return;
     }
 
@@ -379,7 +381,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
         client.id,
         selectedFile,
         documentDescription,
-        documentCategory
+        documentCategory,
       );
 
       if (uploadedDocument) {
@@ -397,13 +399,13 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
         // Reset file input
         const fileInput = document.getElementById(
-          "documentFile"
+          "documentFile",
         ) as HTMLInputElement;
         if (fileInput) fileInput.value = "";
       }
     } catch (err) {
       console.error("Failed to upload document:", err);
-      alert("Failed to upload document. Please try again.");
+      showToast("Failed to upload document. Please try again.", "error");
     }
   };
 
@@ -423,7 +425,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       }
     } catch (err) {
       console.error("Failed to delete document:", err);
-      alert("Failed to delete document. Please try again.");
+      showToast("Failed to delete document. Please try again.", "error");
     }
   };
 
@@ -530,8 +532,8 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                     clientStatus === "Open"
                       ? "bg-green-100 text-green-800"
                       : clientStatus === "Closed"
-                      ? "bg-gray-100 text-gray-800"
-                      : "bg-red-100 text-red-800" // Discontinued
+                        ? "bg-gray-100 text-gray-800"
+                        : "bg-red-100 text-red-800" // Discontinued
                   }`}
                 >
                   {clientStatus}
@@ -763,7 +765,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                             if (key.startsWith("currentStatus_")) {
                               const timestamp = key.replace(
                                 "currentStatus_",
-                                ""
+                                "",
                               );
                               const date = new Date(timestamp);
                               return (
@@ -785,7 +787,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                             if (key.startsWith("healthHistory_")) {
                               const timestamp = key.replace(
                                 "healthHistory_",
-                                ""
+                                "",
                               );
                               const date = new Date(timestamp);
 
@@ -804,14 +806,14 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                                       {Object.entries(historyData).map(
                                         (
                                           [fieldKey, fieldValue],
-                                          fieldIndex
+                                          fieldIndex,
                                         ) => {
                                           const formattedFieldKey = fieldKey
                                             .split(".")
                                             .map(
                                               (part) =>
                                                 part.charAt(0).toUpperCase() +
-                                                part.slice(1)
+                                                part.slice(1),
                                             )
                                             .join(" - ");
 
@@ -826,7 +828,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                                               <span>{String(fieldValue)}</span>
                                             </div>
                                           );
-                                        }
+                                        },
                                       )}
                                     </div>
                                   </div>
@@ -853,7 +855,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                               .split(".")
                               .map(
                                 (part) =>
-                                  part.charAt(0).toUpperCase() + part.slice(1)
+                                  part.charAt(0).toUpperCase() + part.slice(1),
                               )
                               .join(" - ");
 
@@ -902,7 +904,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       type="button"
                       onClick={() => {
                         const fieldName = prompt(
-                          "Enter new health information field name:"
+                          "Enter new health information field name:",
                         );
                         if (fieldName && fieldName.trim()) {
                           const key = fieldName
@@ -1226,7 +1228,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                                 <span>•</span>
                                 <span>
                                   {new Date(
-                                    document.uploadDate
+                                    document.uploadDate,
                                   ).toLocaleDateString()}
                                 </span>
                               </div>

@@ -1,5 +1,6 @@
 import { Client } from "../types";
 import jsPDF from "jspdf";
+import { useToast } from "./Toast";
 
 interface PDFExportProps {
   client: Client;
@@ -56,10 +57,10 @@ const organizeHealthInfo = (healthInfo: Record<string, string>) => {
 
   // Sort timestamped entries by date (newest first)
   statusUpdates.sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
   historyEntries.sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
 
   return {
@@ -110,7 +111,7 @@ export const generatePDF = (client: Client): void => {
       `Case Type: ${client.isAcute ? "Acute" : "Regular"}`,
       pageWidth - 14,
       38,
-      { align: "right" }
+      { align: "right" },
     );
     // Add horizontal line
     doc.setDrawColor(200, 200, 200);
@@ -155,7 +156,7 @@ export const generatePDF = (client: Client): void => {
       doc.text(
         `Follow-up Date: ${new Date(client.followUpDate).toLocaleDateString()}`,
         14,
-        y
+        y,
       );
       y += 7;
     }
@@ -374,6 +375,7 @@ export const generatePDF = (client: Client): void => {
 };
 
 export default function PDFExport({ client }: PDFExportProps) {
+  const { showToast } = useToast();
   const handleExport = () => {
     console.log("Export button clicked for client:", client.name);
     try {
@@ -382,7 +384,7 @@ export default function PDFExport({ client }: PDFExportProps) {
       // Check if client data is complete
       if (!client || !client.name || !client.client_number) {
         console.error("Client data is incomplete:", client);
-        alert("Cannot generate PDF: Client data is incomplete");
+        showToast("Cannot generate PDF: Client data is incomplete", "error");
         return;
       }
 
@@ -390,10 +392,11 @@ export default function PDFExport({ client }: PDFExportProps) {
       console.log("PDF generation completed successfully");
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert(
+      showToast(
         `Error generating PDF: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
+        "error",
       );
     }
   };

@@ -9,7 +9,7 @@ export interface Client {
     bloodPressure?: string;
     bloodGlucose?: string;
     address: string;
-    phoneNumber: number;
+    phoneNumber: string;
     followUpDate?: string; // Follow-up appointment date
     status: 'Open' | 'Closed' | 'Discontinued'; // Case status
     isAcute: boolean; // Flag to indicate if this is an acute case

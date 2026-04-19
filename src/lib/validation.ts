@@ -11,7 +11,7 @@ export const clientCreateSchema = z.object({
   bloodPressure: z.string().max(50).optional().default(""),
   bloodGlucose: z.string().max(50).optional().default(""),
   address: z.string().max(500).optional().default(""),
-  phoneNumber: z.number({ invalid_type_error: "Phone number must be a number" }).optional().default(0),
+  phoneNumber: z.string().max(20, "Phone number too long").optional().default(""),
   followUpDate: z.string().max(30).optional().default(""),
   status: z.enum(["Open", "Closed", "Discontinued"]).optional().default("Open"),
   isAcute: z.boolean().optional().default(false),

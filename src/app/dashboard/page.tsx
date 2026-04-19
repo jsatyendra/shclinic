@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Client } from "../../types";
 import { clientApi } from "../../lib/clientApi";
+import { useToast } from "../../components/Toast";
 
 export default function Dashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { showToast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +52,7 @@ export default function Dashboard() {
       today.setHours(0, 0, 0, 0);
 
       if (selectedDate && selectedDate <= today) {
-        alert("Follow-up date must be in the future.");
+        showToast("Follow-up date must be in the future.", "warning");
         return;
       }
     }
@@ -66,15 +68,15 @@ export default function Dashboard() {
           prev.map((client) =>
             client.id === clientId
               ? { ...client, followUpDate: tempFollowUpDate }
-              : client
-          )
+              : client,
+          ),
         );
         setEditingFollowUp(null);
         setTempFollowUpDate("");
       }
     } catch (error) {
       console.error("Failed to update follow-up date:", error);
-      alert("Failed to update follow-up date. Please try again.");
+      showToast("Failed to update follow-up date. Please try again.", "error");
     }
   };
 
@@ -110,7 +112,7 @@ export default function Dashboard() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sevenDaysFromNow = new Date(
-      today.getTime() + 7 * 24 * 60 * 60 * 1000
+      today.getTime() + 7 * 24 * 60 * 60 * 1000,
     );
     return followUpDate
       ? followUpDate >= today && followUpDate <= sevenDaysFromNow
@@ -119,7 +121,7 @@ export default function Dashboard() {
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.client_number.toLowerCase().includes(searchTerm.toLowerCase())
+      client.client_number.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (status === "loading" || isLoading) {
@@ -160,6 +162,7 @@ export default function Dashboard() {
             <input
               type="text"
               placeholder="Search clients by ID or name..."
+              aria-label="Search clients by ID or name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -236,8 +239,8 @@ export default function Dashboard() {
                               client.status === "Open"
                                 ? "bg-green-100 text-green-800"
                                 : client.status === "Closed"
-                                ? "bg-gray-100 text-gray-800"
-                                : "bg-red-100 text-red-800" // Discontinued
+                                  ? "bg-gray-100 text-gray-800"
+                                  : "bg-red-100 text-red-800" // Discontinued
                             }`}
                           >
                             {client.status}
@@ -276,13 +279,13 @@ export default function Dashboard() {
                                     isDateOverdue(client.followUpDate)
                                       ? "bg-red-100 text-red-800"
                                       : isDateDueSoon(client.followUpDate)
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-green-100 text-green-800"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-green-100 text-green-800"
                                   }`}
                                   onClick={() =>
                                     handleFollowUpEdit(
                                       client.id,
-                                      client.followUpDate || ""
+                                      client.followUpDate || "",
                                     )
                                   }
                                 >
@@ -302,11 +305,12 @@ export default function Dashboard() {
                                 onClick={() =>
                                   handleFollowUpEdit(
                                     client.id,
-                                    client.followUpDate || ""
+                                    client.followUpDate || "",
                                   )
                                 }
                                 className="text-gray-400 hover:text-blue-600 text-xs ml-1"
                                 title="Edit follow-up date"
+                                aria-label={`Edit follow-up date for ${client.name}`}
                               >
                                 ✏️
                               </button>

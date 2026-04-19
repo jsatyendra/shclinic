@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbConnection } from "../../../../../db/connection";
-import { writeFile } from "fs/promises";
+import { writeFile, unlink } from "fs/promises";
 import { randomBytes } from "crypto";
 import path from "path";
 import { MAX_UPLOAD_SIZE, documentCategorySchema } from "../../../../../lib/validation";
@@ -137,10 +137,9 @@ export async function DELETE(
       .run(documentId, clientId);
     
     // Delete file from filesystem
-    const fs = require('fs').promises;
     const filePath = path.join(process.cwd(), 'uploads', document.fileName);
     try {
-      await fs.unlink(filePath);
+      await unlink(filePath);
     } catch (fileError) {
       console.warn('Could not delete file from filesystem:', fileError);
     }

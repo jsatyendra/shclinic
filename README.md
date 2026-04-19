@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SH Clinic Management System
+
+A homeopathic clinic management application built with Next.js, React, and SQLite.
+
+## Features
+
+- **Client Management** — Add, edit, search, and manage patient records with auto-generated client numbers (SHC-0001, SHC-0002, …)
+- **Case Taking** — Structured health information capture using configurable templates for both regular and acute cases
+- **Medications & Lab Investigations** — Track prescriptions and lab results per client
+- **Document Management** — Upload and manage PDF documents per client (10MB limit)
+- **Follow-up Tracking** — Schedule and monitor follow-up dates with dashboard alerts
+- **Case Status** — Open / Closed / Discontinued workflow per client
+- **PDF Export** — Generate printable patient summary PDFs
+- **Authentication** — NextAuth.js with JWT strategy and bcrypt password hashing
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router), React 19, TypeScript 5
+- **Database**: SQLite via better-sqlite3 (file-based, zero-config)
+- **Auth**: NextAuth.js 4 with credentials provider
+- **Styling**: Tailwind CSS v4
+- **Validation**: Zod
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install --legacy-peer-deps
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` and fill in the values:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env.local
+```
 
-## Learn More
+Required variables:
 
-To learn more about Next.js, take a look at the following resources:
+| Variable             | Description                                                             |
+| -------------------- | ----------------------------------------------------------------------- |
+| `NEXTAUTH_SECRET`    | Random string for JWT signing (generate with `openssl rand -base64 32`) |
+| `NEXTAUTH_URL`       | App URL, e.g. `http://localhost:3000`                                   |
+| `AUTH_USERNAME`      | Login username                                                          |
+| `AUTH_PASSWORD_HASH` | bcrypt hash of the password (escape `$` as `\$`)                        |
+| `AUTH_USER_NAME`     | Display name shown in the UI                                            |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> **Note**: bcrypt hashes contain `$` characters. In `.env.local`, escape each `$` with `\$` to prevent dotenv-expand from treating them as variable references.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Running
 
-## Deploy on Vercel
+```bash
+npm run dev      # Development server at http://localhost:3000
+npm run build    # Production build
+npm start        # Start production server
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The SQLite database is created automatically on first run at `src/db/clinic.db`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+src/
+  app/              # Next.js App Router pages and API routes
+    api/clients/    # REST API for client CRUD + documents
+    clients/        # Client add/edit pages
+    dashboard/      # Main dashboard with search & follow-up management
+    login/          # Authentication page
+  components/       # Reusable React components
+  db/               # Database connection, schema, and migrations
+  lib/              # Shared utilities (auth, validation, client API, DB helpers)
+  types/            # TypeScript type definitions
+scripts/            # Utility scripts (DB, migration, testing)
+uploads/            # Uploaded document storage (gitignored)
+```
+
+## API Endpoints
+
+All `/api/clients` endpoints require authentication (JWT via middleware).
+
+| Method | Path                                  | Description                     |
+| ------ | ------------------------------------- | ------------------------------- |
+| GET    | `/api/clients`                        | List all clients                |
+| GET    | `/api/clients?check=true`             | Health check (no auth required) |
+| POST   | `/api/clients`                        | Create a new client             |
+| GET    | `/api/clients/[id]`                   | Get client by ID                |
+| PUT    | `/api/clients/[id]`                   | Update client                   |
+| DELETE | `/api/clients/[id]`                   | Delete client                   |
+| POST   | `/api/clients/[id]/documents`         | Upload document                 |
+| GET    | `/api/clients/[id]/documents/[docId]` | Download document               |
+| DELETE | `/api/clients/[id]/documents/[docId]` | Delete document                 |

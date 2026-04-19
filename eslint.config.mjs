@@ -13,53 +13,32 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
-      // Ignore API routes temporarily
-      "src/app/api/**/*",
-      // Ignore other build/generated files
       ".next/**/*",
       "out/**/*",
       "dist/**/*",
       "node_modules/**/*",
-      // Ignore database and migration files
-      "*.js", // Root level JS files like dbinit.js, migrate.js, etc.
-      "add-*.js",
-      "server-init.js",
-      "dbquery.js",
-      "dbverify.js",
-      "recreate-table.js",
-      "run-migration.js",
-      "test-*.js",
-      "find-client.js",
-      "get-client.js",
-      "list-clients.js",
-      "export-clients.js",
+      "scripts/**/*",
     ]
   },
   {
     rules: {
-      // Disable unused vars errors temporarily
-      "@typescript-eslint/no-unused-vars": ["off"],
-      "@typescript-eslint/no-explicit-any": "off",
-      // Allow unused variables that start with underscore
-      "no-unused-vars": "off",
-      // Disable other common TypeScript strict rules temporarily
-      "@typescript-eslint/ban-ts-comment": "off",
-      "@typescript-eslint/prefer-as-const": "off",
-      "@typescript-eslint/no-empty-interface": "off",
-      "@typescript-eslint/no-non-null-assertion": "off",
+      // Warn on unused vars (ignore underscore-prefixed)
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "no-unused-vars": "off", // defer to @typescript-eslint version
+      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/prefer-as-const": "warn",
+      "@typescript-eslint/no-non-null-assertion": "warn",
       "@typescript-eslint/no-inferrable-types": "off",
-      // React/Next.js specific rules
+      // React/Next.js
       "react/no-unescaped-entities": "off",
       "react/display-name": "off",
       "react/prop-types": "off",
       "react-hooks/exhaustive-deps": "warn",
-      // Allow console statements (useful for debugging)
+      // Allow console in API routes; warn elsewhere
       "no-console": "off",
-      // Disable import/export related strict rules
       "import/no-anonymous-default-export": "off",
-      // Allow empty catch blocks temporarily
-      "no-empty": "off",
-      // Allow any casing for variables/functions
+      "no-empty": "warn",
       "@typescript-eslint/naming-convention": "off",
     }
   }

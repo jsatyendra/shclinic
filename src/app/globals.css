@@ -3,7 +3,7 @@
 :root {
   --background: #f1f8e9;
   --foreground: #171717;
-  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 @theme inline {
@@ -27,6 +27,24 @@ body {
 }
 
 /* Ensure all inputs and text areas use the same font */
-input, textarea, select, button {
+input,
+textarea,
+select,
+button {
   font-family: var(--font-family);
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.2s ease-out;
 }

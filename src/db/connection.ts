@@ -74,7 +74,9 @@ function initializeDatabase(): void {
       bloodPressure TEXT,
       bloodGlucose TEXT,
       address TEXT,
-      phoneNumber INTEGER,
+      phoneNumber TEXT,
+      followUpDate TEXT,
+      status TEXT DEFAULT 'Open',
       isAcute INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -112,6 +114,22 @@ function initializeDatabase(): void {
       testDate TEXT NOT NULL,
       results TEXT NOT NULL,
       notes TEXT,
+      FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Create documents table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS documents (
+      id TEXT PRIMARY KEY,
+      client_id TEXT NOT NULL,
+      fileName TEXT NOT NULL,
+      originalName TEXT NOT NULL,
+      fileType TEXT NOT NULL,
+      fileSize INTEGER NOT NULL,
+      uploadDate TEXT NOT NULL,
+      description TEXT,
+      category TEXT DEFAULT 'Other',
       FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
     )
   `);

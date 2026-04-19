@@ -64,7 +64,7 @@ export default function AddClientPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const handlePersonalInfoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setPersonalInfo((prev) => ({ ...prev, [name]: value }));
@@ -89,7 +89,7 @@ export default function AddClientPage() {
     const newHealthInfo: Record<string, string> = {};
     const populateFields = (
       obj: Record<string, TemplateValue>,
-      prefix = ""
+      prefix = "",
     ) => {
       Object.entries(obj).forEach(([key, value]) => {
         const fieldName = prefix ? `${prefix}.${key}` : key;
@@ -106,7 +106,7 @@ export default function AddClientPage() {
   };
 
   const handleHealthInfoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setHealthInfo((prev) => ({ ...prev, [name]: value }));
@@ -131,7 +131,7 @@ export default function AddClientPage() {
   };
 
   const handleLabInvestigationChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setNewLabInvestigation((prev) => ({ ...prev, [name]: value }));
@@ -200,7 +200,7 @@ export default function AddClientPage() {
 
     const newClient: Omit<Client, "id"> = {
       ...personalInfo,
-      phoneNumber: Number(personalInfo.phoneNumber), // Convert phoneNumber to number
+      phoneNumber: personalInfo.phoneNumber || "",
       client_number: "", // TODO: Set appropriate client number here
       status: "Open", // New clients start with Open status
       isAcute,
@@ -236,7 +236,7 @@ export default function AddClientPage() {
     const newHealthInfo: Record<string, string> = {};
     const populateFields = (
       obj: Record<string, TemplateValue>,
-      prefix = ""
+      prefix = "",
     ) => {
       Object.entries(obj).forEach(([key, value]) => {
         const fieldName = prefix ? `${prefix}.${key}` : key;
@@ -498,7 +498,7 @@ export default function AddClientPage() {
                                 </h3>
                                 <div className="pl-4 space-y-4">
                                   {Object.entries(
-                                    value as Record<string, string>
+                                    value as Record<string, string>,
                                   ).map(([subKey, subValue], subIndex) => (
                                     <div key={`${index}-${subIndex}`}>
                                       <h4 className="mb-1 text-sm font-medium text-gray-600">
@@ -541,7 +541,7 @@ export default function AddClientPage() {
                               </div>
                             );
                           }
-                        }
+                        },
                       )
                     );
                   })()}
