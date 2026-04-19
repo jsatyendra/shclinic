@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDbConnection } from "../../../../db/connection";
 import { Medication, LabInvestigation } from "../../../../types";
+import { clientUpdateSchema } from "../../../../lib/validation";
+import { randomBytes } from "crypto";
 
 // Define a DbClient type to represent database client row
 interface DbClient {
@@ -115,7 +117,17 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
-    const updatedClient = await request.json();
+    const body = await request.json();
+
+    // Validate input
+    const parsed = clientUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const updatedClient = parsed.data;
     const db = getDbConnection();
     
     // Check if client exists
@@ -227,9 +239,9 @@ export async function PUT(
           VALUES (?, ?, ?, ?, ?, ?)
         `);
         
-        updatedClient.medications.forEach((medication: Medication) => {
+        updatedClient.medications.forEach((medication) => {
           insertMedication.run(
-            medication.id,
+            medication.id || randomBytes(4).toString('hex'),
             id,
             medication.name,
             medication.dosage,
@@ -250,9 +262,9 @@ export async function PUT(
           VALUES (?, ?, ?, ?, ?, ?)
         `);
         
-        updatedClient.labInvestigations.forEach((lab: LabInvestigation) => {
+        updatedClient.labInvestigations.forEach((lab) => {
           insertLabInvestigation.run(
-            lab.id,
+            lab.id || randomBytes(4).toString('hex'),
             id,
             lab.testName,
             lab.testDate,

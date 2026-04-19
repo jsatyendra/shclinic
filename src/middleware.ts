@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  
+  const isApiRoute = path.startsWith("/api/clients");
+
+  // Allow the database health check endpoint without auth
+  if (isApiRoute && request.nextUrl.searchParams.get("check") === "true") {
+    return NextResponse.next();
+  }
+
   // Define public paths that don't require authentication
   const isPublicPath = path === "/login";
   
@@ -14,7 +19,12 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Redirect to login if trying to access a protected route without being authenticated
+  // API routes: return 401 JSON instead of redirecting
+  if (isApiRoute && !token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Page routes: redirect to login if not authenticated
   if (!isPublicPath && !token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -27,7 +37,6 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
-  matcher: ["/dashboard/:path*", "/clients/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/clients/:path*", "/login", "/api/clients/:path*"],
 };

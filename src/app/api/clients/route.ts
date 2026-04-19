@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDbConnection } from "../../../db/connection";
 import { randomBytes } from "crypto";
 import { Medication } from "../../../types";
+import { clientCreateSchema } from "../../../lib/validation";
 
 // Define a DbClient type to represent database client row
 interface DbClient {
@@ -151,7 +152,17 @@ export async function GET(request: Request) {
 // POST endpoint to add a new client
 export async function POST(request: Request) {
   try {
-    const client = await request.json();
+    const body = await request.json();
+
+    // Validate input
+    const parsed = clientCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+    const client = parsed.data;
     const db = getDbConnection();
     const newId = generateId();
     const clientNumber = generateClientNumber(db);

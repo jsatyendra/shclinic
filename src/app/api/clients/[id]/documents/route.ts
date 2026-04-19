@@ -3,6 +3,7 @@ import { getDbConnection } from "../../../../../db/connection";
 import { writeFile } from "fs/promises";
 import { randomBytes } from "crypto";
 import path from "path";
+import { MAX_UPLOAD_SIZE, documentCategorySchema } from "../../../../../lib/validation";
 
 // Helper to generate random IDs
 function generateId(): string {
@@ -36,6 +37,18 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Validate file size
+    if (file.size > MAX_UPLOAD_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds 10MB limit" },
+        { status: 400 }
+      );
+    }
+
+    // Validate category
+    const parsedCategory = documentCategorySchema.safeParse(category);
+    const safeCategory = parsedCategory.success ? parsedCategory.data : "Other";
     
     // Generate unique filename
     const fileExtension = path.extname(file.name);
@@ -63,7 +76,7 @@ export async function POST(
       file.size,
       new Date().toISOString(),
       description || '',
-      category || 'Other'
+      safeCategory
     );
     
     const newDocument = {
@@ -74,7 +87,7 @@ export async function POST(
       fileSize: file.size,
       uploadDate: new Date().toISOString(),
       description: description || '',
-      category: category || 'Other'
+      category: safeCategory
     };
     
     return NextResponse.json(newDocument);

@@ -2,16 +2,19 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-// Mock user for demonstration
-const users = [
-  {
-    id: "1",
-    name: "Dr. Kusuma Kiran",
-    username: "doctor",
-    // This is a hashed version of "password123"
-    password: "$2y$10$b2bzZjpCyY2rUnpjSutSg.dgC104mfWmB7DqJjq0.Rr0vlWQZ4szS",
-  },
-];
+function getAuthUser() {
+  const username = process.env.AUTH_USERNAME;
+  const passwordHash = process.env.AUTH_PASSWORD_HASH;
+  const name = process.env.AUTH_USER_NAME;
+
+  if (!username || !passwordHash || !name) {
+    throw new Error(
+      "Missing required auth environment variables: AUTH_USERNAME, AUTH_PASSWORD_HASH, AUTH_USER_NAME"
+    );
+  }
+
+  return { id: "1", username, password: passwordHash, name };
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -26,11 +29,9 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = users.find(
-          (user) => user.username === credentials.username
-        );
+        const user = getAuthUser();
 
-        if (!user) {
+        if (user.username !== credentials.username) {
           return null;
         }
 

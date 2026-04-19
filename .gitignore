@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database
+src/db/*.db
+src/db/*.db-shm
+src/db/*.db-wal
+src/db/backup/
+
+# uploads (keep directory, ignore contents)
+uploads/*
+!uploads/.gitkeep
+
+# debug/logs
+dblog.txt
+
+# backup files
+*.backup
