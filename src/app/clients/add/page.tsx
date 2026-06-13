@@ -462,7 +462,7 @@ export default function AddClientPage() {
                       htmlFor="isAcute"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Acute Case
+                      Chronic Case
                     </label>
                   </div>
                 </div>
@@ -471,7 +471,7 @@ export default function AddClientPage() {
               {/* Case Taking Section - Dynamically Generated */}
               <div className="rounded-lg bg-white p-6 shadow">
                 <h2 className="mb-4 text-lg font-medium border-b pb-1 text-gray-900">
-                  {isAcute ? "Acute Case Taking" : "Case Taking"}
+                  {isAcute ? "Chronic Case Taking" : "Acute Case Taking"}
                 </h2>
                 <div className="space-y-6">
                   {(() => {

@@ -733,10 +733,10 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       htmlFor="isAcute"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Mark as Acute Case
+                      Mark as Chronic Case
                     </label>
                     <span className="ml-2 text-xs text-gray-500">
-                      (Acute cases require immediate attention)
+                      (Chronic cases require immediate attention)
                     </span>
                   </div>
                 </div>
