@@ -14,6 +14,7 @@ export interface DbClient {
   bloodGlucose?: string;
   address: string;
   phoneNumber: string;
+  startDate?: string;
   followUpDate?: string;
   status?: string;
   isAcute: number;
@@ -72,6 +73,7 @@ export function mapRowToClient(client: DbClient) {
     bloodGlucose: client.bloodGlucose || "",
     address: client.address,
     phoneNumber: client.phoneNumber,
+    startDate: client.startDate || "",
     followUpDate: client.followUpDate || "",
     status: client.status || "Open",
     isAcute: Boolean(client.isAcute),

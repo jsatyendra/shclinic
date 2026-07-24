@@ -13,6 +13,7 @@ function migrateClients() {
     const hasClientNumber = tableInfo.some(col => col.name === 'client_number');
     const hasBloodPressure = tableInfo.some(col => col.name === 'bloodPressure');
     const hasBloodGlucose = tableInfo.some(col => col.name === 'bloodGlucose');
+    const hasStartDate = tableInfo.some(col => col.name === 'startDate');
     const hasAge = tableInfo.some(col => col.name === 'age');
     const hasDateOfBirth = tableInfo.some(col => col.name === 'dateOfBirth');
 
@@ -20,7 +21,7 @@ function migrateClients() {
     db.prepare('BEGIN TRANSACTION').run();
 
     // Add missing columns
-    const needMigration = !hasClientNumber || !hasBloodPressure || !hasBloodGlucose || (!hasAge && hasDateOfBirth);
+    const needMigration = !hasClientNumber || !hasBloodPressure || !hasBloodGlucose || !hasStartDate || (!hasAge && hasDateOfBirth);
     
     if (!hasBloodPressure) {
       console.log('Adding bloodPressure column to clients table...');
@@ -30,6 +31,11 @@ function migrateClients() {
     if (!hasBloodGlucose) {
       console.log('Adding bloodGlucose column to clients table...');
       db.prepare('ALTER TABLE clients ADD COLUMN bloodGlucose TEXT').run();
+    }
+
+    if (!hasStartDate) {
+      console.log('Adding startDate column to clients table...');
+      db.prepare('ALTER TABLE clients ADD COLUMN startDate TEXT').run();
     }
 
     // Migrate dateOfBirth to age

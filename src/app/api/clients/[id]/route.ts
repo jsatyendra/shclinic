@@ -74,6 +74,7 @@ export async function PUT(
       if (updatedClient.weight !== undefined) { updates.push('weight = ?'); queryParams.push(updatedClient.weight); }
       if (updatedClient.address !== undefined) { updates.push('address = ?'); queryParams.push(updatedClient.address); }
       if (updatedClient.phoneNumber !== undefined) { updates.push('phoneNumber = ?'); queryParams.push(updatedClient.phoneNumber); }
+      if (updatedClient.startDate !== undefined) { updates.push('startDate = ?'); queryParams.push(updatedClient.startDate); }
       if (updatedClient.followUpDate !== undefined) { updates.push('followUpDate = ?'); queryParams.push(updatedClient.followUpDate); }
       if (updatedClient.status !== undefined) { updates.push('status = ?'); queryParams.push(updatedClient.status); }
       if (updatedClient.bloodPressure !== undefined) { updates.push('bloodPressure = ?'); queryParams.push(updatedClient.bloodPressure); }

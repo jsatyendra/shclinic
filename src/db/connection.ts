@@ -80,12 +80,22 @@ function initializeDatabase(): void {
       bloodGlucose TEXT,
       address TEXT,
       phoneNumber TEXT,
+      startDate TEXT,
       followUpDate TEXT,
       status TEXT DEFAULT 'Open',
       isAcute INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Backfill schema for existing databases created before startDate existed.
+  const clientColumns = db
+    .prepare("PRAGMA table_info(clients)")
+    .all() as { name: string }[];
+  const hasStartDate = clientColumns.some((col) => col.name === "startDate");
+  if (!hasStartDate) {
+    db.prepare("ALTER TABLE clients ADD COLUMN startDate TEXT").run();
+  }
   
   // Create health_info table (one-to-many relationship with clients)
   db.exec(`

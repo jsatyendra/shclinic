@@ -70,8 +70,8 @@ export async function POST(request: Request) {
     const createClient = db.transaction(() => {
       // Insert into clients table
       db.prepare(`
-        INSERT INTO clients (id, client_number, name, age, gender, height, weight, bloodPressure, bloodGlucose, address, phoneNumber, followUpDate, status, isAcute)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO clients (id, client_number, name, age, gender, height, weight, bloodPressure, bloodGlucose, address, phoneNumber, startDate, followUpDate, status, isAcute)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         newId,
         clientNumber,
@@ -84,6 +84,7 @@ export async function POST(request: Request) {
         client.bloodGlucose || '',
         client.address || '',
         client.phoneNumber || '',
+        client.startDate || '',
         client.followUpDate || '',
         client.status || 'Open',
         client.isAcute ? 1 : 0

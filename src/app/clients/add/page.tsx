@@ -23,9 +23,44 @@ interface TemplateSection {
   [key: string]: TemplateValue;
 }
 
+type FollowUpFrequency = "1week" | "2weeks" | "1month" | "custom";
+
+const formatDateForInput = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const calculateFollowUpDate = (
+  startDate: string,
+  frequency: FollowUpFrequency,
+): string => {
+  if (!startDate || frequency === "custom") {
+    return "";
+  }
+
+  const baseDate = new Date(`${startDate}T00:00:00`);
+  if (Number.isNaN(baseDate.getTime())) {
+    return "";
+  }
+
+  const nextDate = new Date(baseDate);
+  if (frequency === "1week") {
+    nextDate.setDate(nextDate.getDate() + 7);
+  } else if (frequency === "2weeks") {
+    nextDate.setDate(nextDate.getDate() + 14);
+  } else {
+    nextDate.setMonth(nextDate.getMonth() + 1);
+  }
+
+  return formatDateForInput(nextDate);
+};
+
 export default function AddClientPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const today = formatDateForInput(new Date());
 
   const [personalInfo, setPersonalInfo] = useState({
     name: "",
@@ -37,7 +72,11 @@ export default function AddClientPage() {
     bloodGlucose: "",
     address: "",
     phoneNumber: "",
+    startDate: today,
+    followUpDate: calculateFollowUpDate(today, "1week"),
   });
+  const [followUpFrequency, setFollowUpFrequency] =
+    useState<FollowUpFrequency>("1week");
 
   const [isAcute, setIsAcute] = useState(false);
   const [healthInfo, setHealthInfo] = useState<Record<string, string>>({});
@@ -76,6 +115,12 @@ export default function AddClientPage() {
         return newErrors;
       });
     }
+  };
+
+  const handleFollowUpFrequencyChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setFollowUpFrequency(e.target.value as FollowUpFrequency);
   };
 
   const toggleAcuteCase = () => {
@@ -158,6 +203,17 @@ export default function AddClientPage() {
   const removeLabInvestigation = (index: number) => {
     setLabInvestigations((prev) => prev.filter((_, i) => i !== index));
   };
+
+  useEffect(() => {
+    if (followUpFrequency === "custom") {
+      return;
+    }
+
+    setPersonalInfo((prev) => ({
+      ...prev,
+      followUpDate: calculateFollowUpDate(prev.startDate, followUpFrequency),
+    }));
+  }, [personalInfo.startDate, followUpFrequency]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -362,6 +418,58 @@ export default function AddClientPage() {
                       id="phoneNumber"
                       name="phoneNumber"
                       value={personalInfo.phoneNumber}
+                      onChange={handlePersonalInfoChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="startDate"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      id="startDate"
+                      name="startDate"
+                      value={personalInfo.startDate}
+                      onChange={handlePersonalInfoChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="followUpFrequency"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Follow-up Frequency
+                    </label>
+                    <select
+                      id="followUpFrequency"
+                      name="followUpFrequency"
+                      value={followUpFrequency}
+                      onChange={handleFollowUpFrequencyChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    >
+                      <option value="1week">1 Week</option>
+                      <option value="2weeks">2 Weeks</option>
+                      <option value="1month">1 Month</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="followUpDate"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Follow-up Date
+                    </label>
+                    <input
+                      type="date"
+                      id="followUpDate"
+                      name="followUpDate"
+                      value={personalInfo.followUpDate}
                       onChange={handlePersonalInfoChange}
                       className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     />
