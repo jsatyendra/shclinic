@@ -2,7 +2,10 @@ import { z } from "zod";
 
 export const clientCreateSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name too long"),
-  age: z.string().regex(/^\d+$/, "Age must be numeric"),
+  age: z
+    .string()
+    .refine((value) => value === "" || /^\d+$/.test(value), "Age must be numeric")
+    .default(""),
   gender: z.enum(["Male", "Female", "Other"], {
     errorMap: () => ({ message: "Gender must be Male, Female, or Other" }),
   }),
@@ -11,7 +14,11 @@ export const clientCreateSchema = z.object({
   bloodPressure: z.string().max(50).optional().default(""),
   bloodGlucose: z.string().max(50).optional().default(""),
   address: z.string().max(500).optional().default(""),
-  phoneNumber: z.string().max(20, "Phone number too long").optional().default(""),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(1, "Phone number is required")
+    .max(20, "Phone number too long"),
   startDate: z.string().max(30).optional().default(""),
   followUpDate: z.string().max(30).optional().default(""),
   status: z.enum(["Open", "Closed", "Discontinued"]).optional().default("Open"),

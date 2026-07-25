@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { clientApi } from "../../../lib/clientApi";
@@ -101,6 +101,12 @@ export default function AddClientPage() {
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [currentClientId, setCurrentClientId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePersonalInfoChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -221,42 +227,36 @@ export default function AddClientPage() {
     if (!personalInfo.name.trim()) {
       newErrors.name = "Name is required";
     }
+    if (!personalInfo.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    } // Create timestamp for the health history data
+  const canAutoSave = () =>
+    Boolean(personalInfo.name.trim() && personalInfo.phoneNumber.trim());
+
+  const buildClientPayload = (): Omit<Client, "id"> => {
     const currentTimestamp = new Date().toISOString();
-
-    // Create a new client object
     const healthInfoObj: { [key: string]: string } = {};
-
-    // First, add all data from the health info form as a timestamped history entry
     const historyEntry: { [key: string]: string } = {};
 
-    // Collect all non-empty health info values
     Object.entries(healthInfo).forEach(([key, value]) => {
       if (value && value.trim()) {
-        // Store the field in the combined history entry
         historyEntry[key] = value;
       }
     });
 
-    // If we have any health info, create a timestamped entry containing all data
     if (Object.keys(historyEntry).length > 0) {
-      // Add a full entry with the current timestamp - this will be displayed in the Health History section
       healthInfoObj[`healthHistory_${currentTimestamp}`] =
         JSON.stringify(historyEntry);
     }
 
-    const newClient: Omit<Client, "id"> = {
+    return {
       ...personalInfo,
-      phoneNumber: personalInfo.phoneNumber || "",
+      age: personalInfo.age || "",
       client_number: "", // TODO: Set appropriate client number here
       status: "Open", // New clients start with Open status
       isAcute,
@@ -271,17 +271,80 @@ export default function AddClientPage() {
         id: "", // This will be generated on the server
       })),
     };
+  };
+
+  const saveClient = async (redirectOnSuccess: boolean) => {
+    if (!canAutoSave() || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveStatus("saving");
 
     try {
-      const result = await clientApi.addClient(newClient);
+      const payload = buildClientPayload();
+      let result: Client | null = null;
+
+      if (currentClientId) {
+        result = await clientApi.updateClient(currentClientId, payload);
+      } else {
+        result = await clientApi.addClient(payload);
+      }
+
       if (result) {
+        if (!currentClientId) {
+          setCurrentClientId(result.id);
+        }
+        setSaveStatus("saved");
+        if (saveTimerRef.current) {
+          clearTimeout(saveTimerRef.current);
+        }
+        saveTimerRef.current = setTimeout(() => setSaveStatus("idle"), 2000);
+      } else {
+        setSaveStatus("error");
+      }
+
+      if (result && redirectOnSuccess) {
         router.push("/dashboard");
       }
     } catch (error) {
       console.error("Failed to add client:", error);
-      // Handle error (could show an error message)
+      setSaveStatus("error");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    await saveClient(true);
+  };
+
+  useEffect(() => {
+    if (!canAutoSave() || isSaving) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      saveClient(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
+    // Watch all form states that should trigger autosave.
+  }, [personalInfo, isAcute, healthInfo, medications, labInvestigations]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, []);
 
   // Initialize health info fields from template
   useEffect(() => {
@@ -341,6 +404,21 @@ export default function AddClientPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow">
+            <p className="text-sm text-gray-600">
+              {saveStatus === "saving" && "Saving draft..."}
+              {saveStatus === "saved" && "Draft saved"}
+              {saveStatus === "error" && "Save failed. Please try again."}
+              {saveStatus === "idle" && "Enter name and phone to auto-save."}
+            </p>
+            <button
+              type="submit"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Save Client
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Left Column - Personal Information and Health Information */}
             <div className="col-span-1 lg:col-span-8 space-y-6">
@@ -411,7 +489,7 @@ export default function AddClientPage() {
                       htmlFor="phoneNumber"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Phone
+                      Phone *
                     </label>
                     <input
                       type="number"
@@ -419,8 +497,17 @@ export default function AddClientPage() {
                       name="phoneNumber"
                       value={personalInfo.phoneNumber}
                       onChange={handlePersonalInfoChange}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                      className={`mt-1 block w-full rounded-md border ${
+                        errors.phoneNumber
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500`}
                     />
+                    {errors.phoneNumber && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.phoneNumber}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label

@@ -73,6 +73,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
   const [showAddMedication, setShowAddMedication] = useState(false);
   const [showAddInvestigation, setShowAddInvestigation] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ phoneNumber?: string }>({});
 
   // Document upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -101,7 +102,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
             bloodPressure: clientData.bloodPressure || "",
             bloodGlucose: clientData.bloodGlucose || "",
             address: clientData.address,
-            phoneNumber: clientData.phoneNumber,
+            phoneNumber: String(clientData.phoneNumber || ""),
             followUpDate: clientData.followUpDate || "",
           });
           setClientStatus(clientData.status || "Open"); // Set client status separately
@@ -125,9 +126,6 @@ export default function EditClientPage({ params }: EditClientPageProps) {
   useEffect(() => {
     if (!client) return;
 
-    // Track if we've run this effect for the current template
-    // to prevent infinite loops
-    const updatedHealthInfo: Record<string, string> = { ...healthInfo };
     const template = isAcute
       ? (acuteCaseTakingTemplate as AcuteCaseTakingTemplate)
       : (caseTakingTemplate as CaseTakingTemplate);
@@ -136,50 +134,40 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       ? (template as AcuteCaseTakingTemplate)["Acute Case Taking"]
       : (template as CaseTakingTemplate)["Case Taking"];
 
-    // Helper function to check if a field exists in the template
-    const fieldExistsInTemplate = (fieldName: string): boolean => {
-      const parts = fieldName.split(".");
-      if (parts.length === 1) {
-        return Object.prototype.hasOwnProperty.call(templateData, fieldName);
-      } else if (parts.length === 2) {
-        return Boolean(
-          templateData[parts[0]] &&
-          typeof templateData[parts[0]] === "object" &&
-          Object.prototype.hasOwnProperty.call(
-            templateData[parts[0]] as Record<string, string>,
-            parts[1],
-          ),
+    setHealthInfo((prev) => {
+      const baseHealthInfo =
+        Object.keys(prev).length > 0 ? prev : (client.healthInfo ?? {});
+      const updatedHealthInfo: Record<string, string> = { ...baseHealthInfo };
+
+      const populateFields = (
+        obj: Record<string, TemplateValue>,
+        prefix = "",
+      ) => {
+        Object.entries(obj).forEach(([key, value]) => {
+          const fieldName = prefix ? `${prefix}.${key}` : key;
+          if (value !== null && typeof value === "object") {
+            populateFields(value as Record<string, TemplateValue>, fieldName);
+          } else if (
+            !Object.prototype.hasOwnProperty.call(updatedHealthInfo, fieldName)
+          ) {
+            updatedHealthInfo[fieldName] = "";
+          }
+        });
+      };
+
+      if (templateData) {
+        populateFields(
+          templateData as unknown as Record<string, TemplateValue>,
         );
       }
-      return false;
-    };
 
-    const populateFields = (
-      obj: Record<string, TemplateValue>,
-      prefix = "",
-    ) => {
-      Object.entries(obj).forEach(([key, value]) => {
-        const fieldName = prefix ? `${prefix}.${key}` : key;
-        if (value !== null && typeof value === "object") {
-          populateFields(value as Record<string, TemplateValue>, fieldName);
-        } else if (!updatedHealthInfo.hasOwnProperty(fieldName)) {
-          updatedHealthInfo[fieldName] = "";
-        }
-      });
-    };
+      if (JSON.stringify(updatedHealthInfo) === JSON.stringify(prev)) {
+        return prev;
+      }
 
-    if (templateData) {
-      populateFields(templateData as unknown as Record<string, TemplateValue>);
-    }
-
-    // Compare if the health info would change before setting it
-    const wouldChange =
-      JSON.stringify(updatedHealthInfo) !== JSON.stringify(healthInfo);
-
-    if (wouldChange) {
-      setHealthInfo(updatedHealthInfo);
-    }
-  }, [isAcute, client]); // Removed healthInfo from dependencies
+      return updatedHealthInfo;
+    });
+  }, [isAcute, client]);
 
   // Debug the state to help identify issues
   useEffect(() => {
@@ -230,6 +218,10 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     // Reset status to "Open" when editing a closed or discontinued case
     if (clientStatus === "Closed" || clientStatus === "Discontinued") {
       setClientStatus("Open");
+    }
+
+    if (name === "phoneNumber" && value.trim()) {
+      setFormErrors((prev) => ({ ...prev, phoneNumber: undefined }));
     }
 
     setPersonalInfo((prev) => ({ ...prev, [name]: value }));
@@ -310,9 +302,16 @@ export default function EditClientPage({ params }: EditClientPageProps) {
         setClient(updatedClient);
         setNewMedication({ name: "", dosage: "", duration: "" });
         setShowAddMedication(false); // Hide the form after successful submission
+      } else {
+        showToast("Failed to add medication. Please try again.", "error");
       }
     } catch (err) {
       console.error("Failed to add medication:", err);
+      const errorMessage =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Failed to add medication. Please try again.";
+      showToast(errorMessage, "error");
     }
   };
 
@@ -343,9 +342,19 @@ export default function EditClientPage({ params }: EditClientPageProps) {
           notes: "",
         });
         setShowAddInvestigation(false); // Hide the form after successful submission
+      } else {
+        showToast(
+          "Failed to add lab investigation. Please try again.",
+          "error",
+        );
       }
     } catch (err) {
       console.error("Failed to add lab investigation:", err);
+      const errorMessage =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Failed to add lab investigation. Please try again.";
+      showToast(errorMessage, "error");
     }
   };
 
@@ -447,6 +456,16 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
     if (!client) return;
 
+    const normalizedPhoneNumber = String(personalInfo.phoneNumber || "").trim();
+
+    if (!normalizedPhoneNumber) {
+      setFormErrors({ phoneNumber: "Phone number is required" });
+      showToast("Phone number is required before saving.", "warning");
+      return;
+    }
+
+    setFormErrors({});
+
     try {
       // Create a timestamp for this update
       const currentTimestamp = new Date().toISOString();
@@ -485,7 +504,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
         bloodPressure: personalInfo.bloodPressure,
         bloodGlucose: personalInfo.bloodGlucose,
         address: personalInfo.address,
-        phoneNumber: personalInfo.phoneNumber,
+        phoneNumber: normalizedPhoneNumber,
         followUpDate: personalInfo.followUpDate,
         status: clientStatus, // Use clientStatus instead of personalInfo.status
         isAcute: isAcute,
@@ -497,12 +516,106 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       const result = await clientApi.updateClient(client.id, updatedClient);
       if (result) {
         console.log("Client updated successfully");
+        showToast("Client updated successfully.", "success");
         router.push("/dashboard");
+      } else {
+        showToast(
+          "Save failed. Phone number is required and all values must be valid.",
+          "error",
+        );
       }
     } catch (err) {
       console.error("Failed to update client:", err);
+      const errorMessage =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Save failed. Please try again.";
+      showToast(errorMessage, "error");
     }
   };
+
+  const healthHistoryRows = Object.entries(healthInfo)
+    .map(([key, value], index) => {
+      // Timestamped current status entries.
+      if (key.startsWith("currentStatus_")) {
+        const timestamp = key.replace("currentStatus_", "");
+        const date = new Date(timestamp);
+        return (
+          <div key={index} className="border-b pb-2 mb-2 last:border-0">
+            <h4 className="text-sm font-medium text-blue-600">
+              Status Update: {date.toLocaleString()}
+            </h4>
+            <p className="text-sm whitespace-pre-line">{value}</p>
+          </div>
+        );
+      }
+
+      // Timestamped health history entries.
+      if (key.startsWith("healthHistory_")) {
+        const timestamp = key.replace("healthHistory_", "");
+        const date = new Date(timestamp);
+
+        try {
+          const historyData = JSON.parse(value);
+
+          return (
+            <div key={index} className="border-b pb-2 mb-2 last:border-0">
+              <h4 className="text-sm font-medium text-blue-600">
+                Health History: {date.toLocaleString()}
+              </h4>
+              <div className="pl-4 mt-2 space-y-2">
+                {Object.entries(historyData).map(
+                  ([fieldKey, fieldValue], fieldIndex) => {
+                    const formattedFieldKey = fieldKey
+                      .split(".")
+                      .map(
+                        (part) => part.charAt(0).toUpperCase() + part.slice(1),
+                      )
+                      .join(" - ");
+
+                    return (
+                      <div key={fieldIndex} className="text-sm">
+                        <span className="font-medium">
+                          {formattedFieldKey}:{" "}
+                        </span>
+                        <span>{String(fieldValue)}</span>
+                      </div>
+                    );
+                  },
+                )}
+              </div>
+            </div>
+          );
+        } catch {
+          return (
+            <div key={index} className="border-b pb-2 mb-2 last:border-0">
+              <h4 className="text-sm font-medium text-blue-600">
+                Health History: {date.toLocaleString()}
+              </h4>
+              <p className="text-sm">{value}</p>
+            </div>
+          );
+        }
+      }
+
+      const formattedKey = key
+        .split(".")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" - ");
+
+      if (value && value.trim()) {
+        return (
+          <div key={index} className="border-b pb-2 mb-2 last:border-0">
+            <h4 className="text-sm font-medium text-gray-700">
+              {formattedKey}
+            </h4>
+            <p className="text-sm">{value}</p>
+          </div>
+        );
+      }
+      return null;
+    })
+    .filter(Boolean);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -676,7 +789,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       htmlFor="phoneNumber"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Phone Number
+                      Phone Number *
                     </label>
                     <input
                       type="number"
@@ -684,8 +797,17 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       name="phoneNumber"
                       value={personalInfo.phoneNumber}
                       onChange={handlePersonalInfoChange}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                      className={`mt-1 block w-full rounded-md border ${
+                        formErrors.phoneNumber
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500`}
                     />
+                    {formErrors.phoneNumber && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.phoneNumber}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label
@@ -752,130 +874,12 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       Health History
                     </h3>
 
-                    {Object.entries(healthInfo).length === 0 ? (
+                    {healthHistoryRows.length === 0 ? (
                       <p className="text-sm text-gray-500">
                         No health information available.
                       </p>
                     ) : (
-                      <div className="space-y-4">
-                        {" "}
-                        {Object.entries(healthInfo)
-                          .map(([key, value], index) => {
-                            // Check if this is a timestamped current status entry
-                            if (key.startsWith("currentStatus_")) {
-                              const timestamp = key.replace(
-                                "currentStatus_",
-                                "",
-                              );
-                              const date = new Date(timestamp);
-                              return (
-                                <div
-                                  key={index}
-                                  className="border-b pb-2 mb-2 last:border-0"
-                                >
-                                  <h4 className="text-sm font-medium text-blue-600">
-                                    Status Update: {date.toLocaleString()}
-                                  </h4>
-                                  <p className="text-sm whitespace-pre-line">
-                                    {value}
-                                  </p>
-                                </div>
-                              );
-                            }
-
-                            // Check if this is a timestamped health history entry
-                            if (key.startsWith("healthHistory_")) {
-                              const timestamp = key.replace(
-                                "healthHistory_",
-                                "",
-                              );
-                              const date = new Date(timestamp);
-
-                              try {
-                                const historyData = JSON.parse(value);
-
-                                return (
-                                  <div
-                                    key={index}
-                                    className="border-b pb-2 mb-2 last:border-0"
-                                  >
-                                    <h4 className="text-sm font-medium text-blue-600">
-                                      Health History: {date.toLocaleString()}
-                                    </h4>
-                                    <div className="pl-4 mt-2 space-y-2">
-                                      {Object.entries(historyData).map(
-                                        (
-                                          [fieldKey, fieldValue],
-                                          fieldIndex,
-                                        ) => {
-                                          const formattedFieldKey = fieldKey
-                                            .split(".")
-                                            .map(
-                                              (part) =>
-                                                part.charAt(0).toUpperCase() +
-                                                part.slice(1),
-                                            )
-                                            .join(" - ");
-
-                                          return (
-                                            <div
-                                              key={fieldIndex}
-                                              className="text-sm"
-                                            >
-                                              <span className="font-medium">
-                                                {formattedFieldKey}:{" "}
-                                              </span>
-                                              <span>{String(fieldValue)}</span>
-                                            </div>
-                                          );
-                                        },
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              } catch (e) {
-                                // If JSON parsing fails, display as regular field
-                                return (
-                                  <div
-                                    key={index}
-                                    className="border-b pb-2 mb-2 last:border-0"
-                                  >
-                                    <h4 className="text-sm font-medium text-blue-600">
-                                      Health History: {date.toLocaleString()}
-                                    </h4>
-                                    <p className="text-sm">{value}</p>
-                                  </div>
-                                );
-                              }
-                            }
-
-                            // Regular health info fields (from case taking form)
-                            // Format field names by splitting on dots and capitalizing
-                            const formattedKey = key
-                              .split(".")
-                              .map(
-                                (part) =>
-                                  part.charAt(0).toUpperCase() + part.slice(1),
-                              )
-                              .join(" - ");
-
-                            if (value && value.trim()) {
-                              return (
-                                <div
-                                  key={index}
-                                  className="border-b pb-2 mb-2 last:border-0"
-                                >
-                                  <h4 className="text-sm font-medium text-gray-700">
-                                    {formattedKey}
-                                  </h4>
-                                  <p className="text-sm">{value}</p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })
-                          .filter(Boolean)}
-                      </div>
+                      <div className="space-y-4">{healthHistoryRows}</div>
                     )}
                   </div>
                   {/* Current Status textarea */}
@@ -896,29 +900,6 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       This will be saved with the current date and time.
                     </p>
                   </div>{" "}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const fieldName = prompt(
-                          "Enter new health information field name:",
-                        );
-                        if (fieldName && fieldName.trim()) {
-                          const key = fieldName
-                            .trim()
-                            .toLowerCase()
-                            .replace(/\s+/g, "");
-                          setHealthInfo((prev) => ({ ...prev, [key]: "" }));
-                        }
-                      }}
-                      className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      + Add Custom Health Field
-                    </button>
-                  </div>
                 </div>
               </div>
               <div className="flex space-x-3">

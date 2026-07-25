@@ -77,19 +77,42 @@ export const clientApi = {
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', errorText);
-        throw new Error(`Error: ${response.status} - ${errorText}`);
+        const contentType = response.headers.get('content-type') || '';
+        let message = `Failed to update client (HTTP ${response.status})`;
+
+        if (contentType.includes('application/json')) {
+          const errorJson = await response.json() as {
+            error?: string;
+            details?: Record<string, string[] | undefined>;
+          };
+          const detailMessages = errorJson.details
+            ? Object.values(errorJson.details)
+                .flat()
+                .filter((value): value is string => Boolean(value && value.trim()))
+            : [];
+
+          if (detailMessages.length > 0) {
+            message = detailMessages[0];
+          } else if (errorJson.error) {
+            message = errorJson.error;
+          }
+        } else {
+          const errorText = await response.text();
+          if (errorText.trim()) {
+            message = errorText;
+          }
+        }
+
+        console.error('API update error:', message);
+        throw new Error(message);
       }
       
       const result = await response.json();
       console.log('Update response:', result);
       return result;
-      
-      return await response.json();
     } catch (error) {
       console.error(`Failed to update client ${id}:`, error);
-      return null;
+      throw error;
     }
   },
 
@@ -121,8 +144,7 @@ export const clientApi = {
       };
       
       const updatedClient = {
-        ...client,
-        medications: [...client.medications, newMedication],
+        medications: [...(client.medications || []), newMedication],
       };
       
       // Update the client with the new data
@@ -148,7 +170,6 @@ export const clientApi = {
       };
       
       const updatedClient = {
-        ...client,
         labInvestigations: [...(client.labInvestigations || []), newLabInvestigation],
       };
       
