@@ -31,6 +31,8 @@ interface EditClientPageProps {
   }>;
 }
 
+const PHONE_10_DIGIT_REGEX = /^\d{10}$/;
+
 export default function EditClientPage({ params }: EditClientPageProps) {
   const { id } = use(params);
   const { data: session, status } = useSession();
@@ -220,7 +222,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       setClientStatus("Open");
     }
 
-    if (name === "phoneNumber" && value.trim()) {
+    if (name === "phoneNumber" && PHONE_10_DIGIT_REGEX.test(value.trim())) {
       setFormErrors((prev) => ({ ...prev, phoneNumber: undefined }));
     }
 
@@ -464,6 +466,14 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       return;
     }
 
+    if (!PHONE_10_DIGIT_REGEX.test(normalizedPhoneNumber)) {
+      setFormErrors({
+        phoneNumber: "Phone number must be exactly 10 digits",
+      });
+      showToast("Phone number must be exactly 10 digits.", "warning");
+      return;
+    }
+
     setFormErrors({});
 
     try {
@@ -616,6 +626,29 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       return null;
     })
     .filter(Boolean);
+
+  const medicationsByDate = (client.medications || []).reduce(
+    (groups, medication) => {
+      const dateKey = medication.prescribedDate || "Unknown Date";
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(medication);
+      return groups;
+    },
+    {} as Record<string, Medication[]>,
+  );
+  const medicationDateGroups = Object.entries(medicationsByDate).sort(
+    ([dateA], [dateB]) => {
+      const isUnknownA = dateA === "Unknown Date";
+      const isUnknownB = dateB === "Unknown Date";
+      if (isUnknownA && !isUnknownB) return 1;
+      if (!isUnknownA && isUnknownB) return -1;
+      if (isUnknownA && isUnknownB) return 0;
+
+      return dateB.localeCompare(dateA);
+    },
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -792,9 +825,12 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       Phone Number *
                     </label>
                     <input
-                      type="number"
+                      type="tel"
                       id="phoneNumber"
                       name="phoneNumber"
+                      inputMode="numeric"
+                      pattern="\\d{10}"
+                      maxLength={10}
                       value={personalInfo.phoneNumber}
                       onChange={handlePersonalInfoChange}
                       className={`mt-1 block w-full rounded-md border ${
@@ -944,20 +980,29 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                         No medications prescribed.
                       </p>
                     ) : (
-                      client.medications.map((medication) => (
+                      medicationDateGroups.map(([prescribedDate, meds]) => (
                         <div
-                          key={medication.id}
+                          key={prescribedDate}
                           className="rounded-md border border-gray-200 bg-gray-50 p-3"
                         >
-                          <p className="font-medium">{medication.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {medication.dosage}
-                            {medication.duration &&
-                              ` for ${medication.duration}`}
+                          <p className="text-xs font-medium text-gray-500">
+                            Prescribed: {prescribedDate}
                           </p>
-                          <p className="text-xs text-gray-500">
-                            Prescribed: {medication.prescribedDate}
-                          </p>
+                          <div className="mt-2 space-y-2">
+                            {meds.map((medication) => (
+                              <div
+                                key={medication.id}
+                                className="border-l-2 border-gray-200 pl-3"
+                              >
+                                <p className="font-medium">{medication.name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {medication.dosage}
+                                  {medication.duration &&
+                                    ` for ${medication.duration}`}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))
                     )}

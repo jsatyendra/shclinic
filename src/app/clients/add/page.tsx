@@ -57,6 +57,8 @@ const calculateFollowUpDate = (
   return formatDateForInput(nextDate);
 };
 
+const PHONE_10_DIGIT_REGEX = /^\d{10}$/;
+
 export default function AddClientPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -229,6 +231,8 @@ export default function AddClientPage() {
     }
     if (!personalInfo.phoneNumber.trim()) {
       newErrors.phoneNumber = "Phone number is required";
+    } else if (!PHONE_10_DIGIT_REGEX.test(personalInfo.phoneNumber.trim())) {
+      newErrors.phoneNumber = "Phone number must be exactly 10 digits";
     }
 
     setErrors(newErrors);
@@ -236,7 +240,10 @@ export default function AddClientPage() {
   };
 
   const canAutoSave = () =>
-    Boolean(personalInfo.name.trim() && personalInfo.phoneNumber.trim());
+    Boolean(
+      personalInfo.name.trim() &&
+        PHONE_10_DIGIT_REGEX.test(personalInfo.phoneNumber.trim()),
+    );
 
   const buildClientPayload = (): Omit<Client, "id"> => {
     const currentTimestamp = new Date().toISOString();
@@ -256,6 +263,7 @@ export default function AddClientPage() {
 
     return {
       ...personalInfo,
+      phoneNumber: personalInfo.phoneNumber.trim(),
       age: personalInfo.age || "",
       client_number: "", // TODO: Set appropriate client number here
       status: "Open", // New clients start with Open status
@@ -492,9 +500,12 @@ export default function AddClientPage() {
                       Phone *
                     </label>
                     <input
-                      type="number"
+                      type="tel"
                       id="phoneNumber"
                       name="phoneNumber"
+                      inputMode="numeric"
+                      pattern="\\d{10}"
+                      maxLength={10}
                       value={personalInfo.phoneNumber}
                       onChange={handlePersonalInfoChange}
                       className={`mt-1 block w-full rounded-md border ${

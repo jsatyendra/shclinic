@@ -18,7 +18,7 @@ export const clientCreateSchema = z.object({
     .string()
     .trim()
     .min(1, "Phone number is required")
-    .max(20, "Phone number too long"),
+    .regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
   startDate: z.string().max(30).optional().default(""),
   followUpDate: z.string().max(30).optional().default(""),
   status: z.enum(["Open", "Closed", "Discontinued"]).optional().default("Open"),
