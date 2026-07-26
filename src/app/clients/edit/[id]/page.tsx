@@ -33,6 +33,9 @@ interface EditClientPageProps {
 
 const PHONE_10_DIGIT_REGEX = /^\d{10}$/;
 
+const normalizePhoneNumberInput = (value: string): string =>
+  value.replace(/\D/g, "").slice(0, 10);
+
 export default function EditClientPage({ params }: EditClientPageProps) {
   const { id } = use(params);
   const { data: session, status } = useSession();
@@ -104,7 +107,9 @@ export default function EditClientPage({ params }: EditClientPageProps) {
             bloodPressure: clientData.bloodPressure || "",
             bloodGlucose: clientData.bloodGlucose || "",
             address: clientData.address,
-            phoneNumber: String(clientData.phoneNumber || ""),
+            phoneNumber: normalizePhoneNumberInput(
+              String(clientData.phoneNumber || ""),
+            ),
             followUpDate: clientData.followUpDate || "",
           });
           setClientStatus(clientData.status || "Open"); // Set client status separately
@@ -204,6 +209,8 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+    const nextValue =
+      name === "phoneNumber" ? normalizePhoneNumberInput(value) : value;
 
     // Validate follow-up date to ensure it's in the future
     if (name === "followUpDate" && value) {
@@ -226,7 +233,7 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       setFormErrors((prev) => ({ ...prev, phoneNumber: undefined }));
     }
 
-    setPersonalInfo((prev) => ({ ...prev, [name]: value }));
+    setPersonalInfo((prev) => ({ ...prev, [name]: nextValue }));
   };
 
   const handleHealthInfoChange = (
@@ -829,7 +836,6 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                       id="phoneNumber"
                       name="phoneNumber"
                       inputMode="numeric"
-                      pattern="\\d{10}"
                       maxLength={10}
                       value={personalInfo.phoneNumber}
                       onChange={handlePersonalInfoChange}

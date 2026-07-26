@@ -59,6 +59,9 @@ const calculateFollowUpDate = (
 
 const PHONE_10_DIGIT_REGEX = /^\d{10}$/;
 
+const normalizePhoneNumberInput = (value: string): string =>
+  value.replace(/\D/g, "").slice(0, 10);
+
 export default function AddClientPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -114,7 +117,10 @@ export default function AddClientPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setPersonalInfo((prev) => ({ ...prev, [name]: value }));
+    const nextValue =
+      name === "phoneNumber" ? normalizePhoneNumberInput(value) : value;
+
+    setPersonalInfo((prev) => ({ ...prev, [name]: nextValue }));
     // Clear error when field is updated
     if (errors[name]) {
       setErrors((prev) => {
@@ -242,7 +248,7 @@ export default function AddClientPage() {
   const canAutoSave = () =>
     Boolean(
       personalInfo.name.trim() &&
-        PHONE_10_DIGIT_REGEX.test(personalInfo.phoneNumber.trim()),
+      PHONE_10_DIGIT_REGEX.test(personalInfo.phoneNumber.trim()),
     );
 
   const buildClientPayload = (): Omit<Client, "id"> => {
@@ -504,7 +510,6 @@ export default function AddClientPage() {
                       id="phoneNumber"
                       name="phoneNumber"
                       inputMode="numeric"
-                      pattern="\\d{10}"
                       maxLength={10}
                       value={personalInfo.phoneNumber}
                       onChange={handlePersonalInfoChange}
