@@ -31,6 +31,40 @@ interface EditClientPageProps {
   }>;
 }
 
+type FollowUpFrequency = "1week" | "2weeks" | "1month" | "custom";
+
+const formatDateForInput = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const calculateFollowUpDate = (
+  startDate: string,
+  frequency: FollowUpFrequency,
+): string => {
+  if (!startDate || frequency === "custom") {
+    return "";
+  }
+
+  const baseDate = new Date(`${startDate}T00:00:00`);
+  if (Number.isNaN(baseDate.getTime())) {
+    return "";
+  }
+
+  const nextDate = new Date(baseDate);
+  if (frequency === "1week") {
+    nextDate.setDate(nextDate.getDate() + 7);
+  } else if (frequency === "2weeks") {
+    nextDate.setDate(nextDate.getDate() + 14);
+  } else {
+    nextDate.setMonth(nextDate.getMonth() + 1);
+  }
+
+  return formatDateForInput(nextDate);
+};
+
 const PHONE_10_DIGIT_REGEX = /^\d{10}$/;
 
 const normalizePhoneNumberInput = (value: string): string =>
@@ -44,6 +78,8 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
   const [client, setClient] = useState<Client | null>(null);
   const [isAcute, setIsAcute] = useState(false);
+  const [followUpFrequency, setFollowUpFrequency] =
+    useState<FollowUpFrequency>("custom");
   const [personalInfo, setPersonalInfo] = useState({
     age: "",
     gender: "Male" as "Male" | "Female" | "Other",
@@ -133,6 +169,18 @@ export default function EditClientPage({ params }: EditClientPageProps) {
   useEffect(() => {
     if (!client) return;
 
+    const baseStartDate = client.startDate || formatDateForInput(new Date());
+    if (followUpFrequency !== "custom") {
+      setPersonalInfo((prev) => ({
+        ...prev,
+        followUpDate: calculateFollowUpDate(baseStartDate, followUpFrequency),
+      }));
+    }
+  }, [client, followUpFrequency]);
+
+  useEffect(() => {
+    if (!client) return;
+
     const template = isAcute
       ? (acuteCaseTakingTemplate as AcuteCaseTakingTemplate)
       : (caseTakingTemplate as CaseTakingTemplate);
@@ -205,6 +253,12 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       </div>
     );
   }
+  const handleFollowUpFrequencyChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setFollowUpFrequency(e.target.value as FollowUpFrequency);
+  };
+
   const handlePersonalInfoChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -850,6 +904,26 @@ export default function EditClientPage({ params }: EditClientPageProps) {
                         {formErrors.phoneNumber}
                       </p>
                     )}
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="followUpFrequency"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Follow-up Frequency
+                    </label>
+                    <select
+                      id="followUpFrequency"
+                      name="followUpFrequency"
+                      value={followUpFrequency}
+                      onChange={handleFollowUpFrequencyChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    >
+                      <option value="1week">1 Week</option>
+                      <option value="2weeks">2 Weeks</option>
+                      <option value="1month">1 Month</option>
+                      <option value="custom">Custom</option>
+                    </select>
                   </div>
                   <div>
                     <label
