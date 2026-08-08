@@ -82,6 +82,7 @@ function initializeDatabase(): void {
       phoneNumber TEXT,
       startDate TEXT,
       followUpDate TEXT,
+      notes TEXT,
       status TEXT DEFAULT 'Open',
       isAcute INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -95,6 +96,11 @@ function initializeDatabase(): void {
   const hasStartDate = clientColumns.some((col) => col.name === "startDate");
   if (!hasStartDate) {
     db.prepare("ALTER TABLE clients ADD COLUMN startDate TEXT").run();
+  }
+
+  const hasNotes = clientColumns.some((col) => col.name === "notes");
+  if (!hasNotes) {
+    db.prepare("ALTER TABLE clients ADD COLUMN notes TEXT").run();
   }
   
   // Create health_info table (one-to-many relationship with clients)

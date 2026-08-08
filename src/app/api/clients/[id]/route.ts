@@ -76,6 +76,7 @@ export async function PUT(
       if (updatedClient.phoneNumber !== undefined) { updates.push('phoneNumber = ?'); queryParams.push(updatedClient.phoneNumber); }
       if (updatedClient.startDate !== undefined) { updates.push('startDate = ?'); queryParams.push(updatedClient.startDate); }
       if (updatedClient.followUpDate !== undefined) { updates.push('followUpDate = ?'); queryParams.push(updatedClient.followUpDate); }
+      if (updatedClient.notes !== undefined) { updates.push('notes = ?'); queryParams.push(updatedClient.notes); }
       if (updatedClient.status !== undefined) { updates.push('status = ?'); queryParams.push(updatedClient.status); }
       if (updatedClient.bloodPressure !== undefined) { updates.push('bloodPressure = ?'); queryParams.push(updatedClient.bloodPressure); }
       if (updatedClient.bloodGlucose !== undefined) { updates.push('bloodGlucose = ?'); queryParams.push(updatedClient.bloodGlucose); }

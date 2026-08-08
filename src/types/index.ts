@@ -12,6 +12,7 @@ export interface Client {
     phoneNumber: string;
     startDate?: string; // Case start date
     followUpDate?: string; // Follow-up appointment date
+    notes?: string; // Case notes
     status: 'Open' | 'Closed' | 'Discontinued'; // Case status
     isAcute: boolean; // Flag to indicate if this is an acute case
     healthInfo: {

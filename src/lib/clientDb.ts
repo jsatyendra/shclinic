@@ -16,6 +16,7 @@ export interface DbClient {
   phoneNumber: string;
   startDate?: string;
   followUpDate?: string;
+  notes?: string;
   status?: string;
   isAcute: number;
 }
@@ -75,6 +76,7 @@ export function mapRowToClient(client: DbClient) {
     phoneNumber: client.phoneNumber,
     startDate: client.startDate || "",
     followUpDate: client.followUpDate || "",
+    notes: client.notes || "",
     status: client.status || "Open",
     isAcute: Boolean(client.isAcute),
     healthInfo,
