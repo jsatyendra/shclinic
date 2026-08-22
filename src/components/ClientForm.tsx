@@ -336,14 +336,14 @@ export default function ClientForm({
                   onChange={toggleAcuteCase}
                   className="h-4 w-4"
                 />
-                Acute Case
+                Chronic Case
               </label>
             </div>
           </section>
           <section className="rounded-lg bg-white p-6 shadow">
             <div className="mb-4 flex items-center justify-between border-b pb-1">
               <h2 className="text-lg font-medium text-gray-900">
-                {values.isAcute ? "Acute Case Taking" : "Case Taking"}
+                {values.isAcute ? "Chronic Case Taking" : "Acute Case Taking"}
               </h2>
               <button
                 type="button"
