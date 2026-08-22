@@ -226,7 +226,7 @@ export default function Dashboard() {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                           {client.name}
-                        </td>{" "}
+                        </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {client.gender}
                         </td>
