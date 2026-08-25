@@ -37,6 +37,8 @@ const createInitialValues = (): ClientFormValues => {
 export default function AddClientPage() {
   const router = useRouter();
   const { status } = useSession();
+  // Stable so it never feeds back into ClientForm's initialValues prop and re-triggers a sync loop.
+  const [initialValues] = useState<ClientFormValues>(createInitialValues);
   const [values, setValues] = useState<ClientFormValues>(createInitialValues);
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<
@@ -123,7 +125,7 @@ export default function AddClientPage() {
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <ClientForm
-          initialValues={values}
+          initialValues={initialValues}
           onValuesChange={setValues}
           onSubmit={async (nextValues) => {
             setValues(nextValues);
