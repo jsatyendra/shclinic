@@ -161,45 +161,51 @@ export default function EditClientPage({ params }: EditClientPageProps) {
     <section className="rounded-lg bg-white p-6 shadow">
       <h2 className="mb-4 text-lg font-medium text-gray-900">Documents</h2>
       <div className="space-y-3">
-        {(client?.documents || []).map((document) => (
-          <div
-            key={document.id}
-            className="flex items-center justify-between rounded-md border bg-gray-50 p-3"
-          >
-            <div>
-              <p className="font-medium">{document.originalName}</p>
-              <p className="text-xs text-gray-500">{document.category}</p>
+        {[...(client?.documents || [])]
+          .sort(
+            (first, second) =>
+              new Date(second.uploadDate).getTime() -
+              new Date(first.uploadDate).getTime(),
+          )
+          .map((document) => (
+            <div
+              key={document.id}
+              className="flex items-center justify-between rounded-md bg-gray-50 p-3"
+            >
+              <div>
+                <p className="font-medium">{document.originalName}</p>
+                <p className="text-xs text-gray-500">{document.category}</p>
+              </div>
+              <div className="flex gap-3 text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!client) return;
+                    window.open(
+                      clientApi.getDocumentDownloadUrl(client.id, document.id),
+                      "_blank",
+                    );
+                  }}
+                  className="text-blue-600"
+                >
+                  View
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!client) return;
+                    if (window.confirm("Delete this document?")) {
+                      await clientApi.deleteDocument(client.id, document.id);
+                      await refreshClient();
+                    }
+                  }}
+                  className="text-red-600"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-            <div className="flex gap-3 text-sm">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!client) return;
-                  window.open(
-                    clientApi.getDocumentDownloadUrl(client.id, document.id),
-                    "_blank",
-                  );
-                }}
-                className="text-blue-600"
-              >
-                View
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!client) return;
-                  if (window.confirm("Delete this document?")) {
-                    await clientApi.deleteDocument(client.id, document.id);
-                    await refreshClient();
-                  }
-                }}
-                className="text-red-600"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+          ))}
         <input
           type="file"
           accept=".pdf,application/pdf"

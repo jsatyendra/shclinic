@@ -215,6 +215,22 @@ export default function ClientForm({
   const template = values.isAcute
     ? (acuteCaseTakingTemplate as AcuteCaseTakingTemplate)["Acute Case Taking"]
     : (caseTakingTemplate as CaseTakingTemplate)["Case Taking"];
+  const medicationsByDate = values.medications.reduce<
+    Record<string, { medication: Medication; index: number }[]>
+  >((groups, medication, index) => {
+    const date = medication.prescribedDate || "Unknown date";
+    groups[date] ??= [];
+    groups[date].push({ medication, index });
+    return groups;
+  }, {});
+  const labInvestigationsByDate = values.labInvestigations.reduce<
+    Record<string, LabInvestigation[]>
+  >((groups, lab) => {
+    const date = lab.testDate || "Unknown date";
+    groups[date] ??= [];
+    groups[date].push(lab);
+    return groups;
+  }, {});
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -476,33 +492,31 @@ export default function ClientForm({
                 Add Medication
               </button>
             </div>
-            <div className="mt-4 space-y-2">
-              {values.medications.map((medication, index) => (
-                <div
-                  key={`${medication.id}-${index}`}
-                  className="flex items-center justify-between rounded-md border p-3"
-                >
-                  <div>
-                    <p className="font-medium">{medication.name}</p>
-                    <p className="text-sm text-gray-600">
-                      {medication.dosage}
-                      {medication.duration && ` for ${medication.duration}`}
-                    </p>
+            <div className="mt-4 space-y-3">
+              {Object.entries(medicationsByDate).map(([date, medications]) => (
+                <div key={date} className="">
+                  <h3 className="mb-2 text-sm font-medium text-gray-700 border-b pb-1">
+                    {date === "Unknown date"
+                      ? date
+                      : `Prescribed on ${new Date(`${date}T00:00:00`).toLocaleDateString()}`}
+                  </h3>
+                  <div className="space-y-2">
+                    {medications.map(({ medication, index }) => (
+                      <div
+                        key={`${medication.id}-${index}`}
+                        className="flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="font-medium">{medication.name}</p>
+                          <p className="text-sm text-gray-600">
+                            {medication.dosage}
+                            {medication.duration &&
+                              ` for ${medication.duration}`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setValues((previous) => ({
-                        ...previous,
-                        medications: previous.medications.filter(
-                          (_, itemIndex) => itemIndex !== index,
-                        ),
-                      }))
-                    }
-                    className="text-red-600"
-                  >
-                    Remove
-                  </button>
                 </div>
               ))}
             </div>
@@ -564,35 +578,25 @@ export default function ClientForm({
                 Add Investigation
               </button>
             </div>
-            <div className="mt-4 space-y-2">
-              {values.labInvestigations.map((lab, index) => (
-                <div
-                  key={`${lab.id}-${index}`}
-                  className="rounded-md border p-3"
-                >
-                  <div className="flex justify-between">
-                    <p className="font-medium">{lab.testName}</p>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setValues((previous) => ({
-                          ...previous,
-                          labInvestigations: previous.labInvestigations.filter(
-                            (_, itemIndex) => itemIndex !== index,
-                          ),
-                        }))
-                      }
-                      className="text-red-600"
-                    >
-                      Remove
-                    </button>
+            <div className="mt-4 space-y-3">
+              {Object.entries(labInvestigationsByDate).map(([date, labs]) => (
+                <div key={date} className="rounded-md">
+                  <h3 className="mb-2 text-sm font-medium text-gray-700 border-b pb-1">
+                    {date === "Unknown date"
+                      ? date
+                      : `Tested on ${new Date(`${date}T00:00:00`).toLocaleDateString()}`}
+                  </h3>
+                  <div className="space-y-2">
+                    {labs.map((lab, index) => (
+                      <div key={`${lab.id}-${index}`} className="">
+                        <p className="font-medium">{lab.testName}</p>
+                        <p className="text-sm text-gray-600">{lab.results}</p>
+                        {lab.notes && (
+                          <p className="text-sm text-gray-600">{lab.notes}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {lab.testDate} | {lab.results}
-                  </p>
-                  {lab.notes && (
-                    <p className="text-sm text-gray-600">{lab.notes}</p>
-                  )}
                 </div>
               ))}
             </div>
