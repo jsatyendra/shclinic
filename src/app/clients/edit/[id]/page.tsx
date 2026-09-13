@@ -50,7 +50,6 @@ export default function EditClientPage({ params }: EditClientPageProps) {
   const [error, setError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentDescription, setDocumentDescription] = useState("");
-  const [documentCategory, setDocumentCategory] = useState("Other");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -147,7 +146,6 @@ export default function EditClientPage({ params }: EditClientPageProps) {
       client.id,
       selectedFile,
       documentDescription,
-      documentCategory,
     );
     if (uploaded) {
       setSelectedFile(null);
@@ -206,9 +204,20 @@ export default function EditClientPage({ params }: EditClientPageProps) {
               </div>
             </div>
           ))}
+        <label
+          htmlFor="document-file"
+          className="block cursor-pointer rounded-md border-2 border-dashed border-blue-400 bg-blue-50 p-4 text-center text-sm font-medium text-blue-800 hover:border-blue-600 hover:bg-blue-100"
+        >
+          <span className="block">Choose PDF file</span>
+          <span className="mt-1 block text-xs font-normal text-blue-700">
+            {selectedFile ? selectedFile.name : "PDF files up to 10 MB"}
+          </span>
+        </label>
         <input
+          id="document-file"
           type="file"
           accept=".pdf,application/pdf"
+          className="sr-only"
           onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
         />
         <input
@@ -217,16 +226,6 @@ export default function EditClientPage({ params }: EditClientPageProps) {
           placeholder="Document description"
           className="block w-full rounded-md border border-gray-300 px-3 py-2"
         />
-        <select
-          value={documentCategory}
-          onChange={(event) => setDocumentCategory(event.target.value)}
-          className="block rounded-md border border-gray-300 px-3 py-2"
-        >
-          <option>Other</option>
-          <option>Report</option>
-          <option>Prescription</option>
-          <option>Image</option>
-        </select>
         <button
           type="button"
           disabled={!selectedFile}
