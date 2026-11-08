@@ -6,9 +6,9 @@ export const clientCreateSchema = z.object({
     .string()
     .refine((value) => value === "" || /^\d+$/.test(value), "Age must be numeric")
     .default(""),
-  gender: z.enum(["Male", "Female", "Other"], {
-    errorMap: () => ({ message: "Gender must be Male, Female, or Other" }),
-  }),
+gender: z.enum(["Male", "Female", "Other"], {
+  message: "Gender must be Male, Female, or Other",
+}),
   height: z.string().max(20).optional().default(""),
   weight: z.string().max(20).optional().default(""),
   bloodPressure: z.string().max(50).optional().default(""),
