@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function LoginPage() {
 
     try {
       const response = await signIn("credentials", {
-        username,
+        username: loginId,
         password,
         redirect: false,
       });
@@ -54,18 +54,18 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
-              htmlFor="username"
+              htmlFor="loginId"
               className="block text-sm font-medium text-gray-700"
             >
-              Username
+              Login ID
             </label>
             <input
-              id="username"
-              name="username"
+              id="loginId"
+              name="loginId"
               type="text"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             />
           </div>
@@ -95,14 +95,6 @@ export default function LoginPage() {
           >
             {isLoading ? "Logging in..." : "Log In"}
           </button>
-
-          <div className="mt-4 text-center text-sm">
-            <p>
-              Demo credentials: <br />
-              Username: <span className="font-semibold">doctor</span> <br />
-              Password: <span className="font-semibold">password123</span>
-            </p>
-          </div>
         </form>
       </div>
     </div>

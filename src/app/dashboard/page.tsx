@@ -13,6 +13,8 @@ export default function Dashboard() {
   const { showToast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
   const [tempFollowUpDate, setTempFollowUpDate] = useState("");
@@ -123,6 +125,17 @@ export default function Dashboard() {
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.client_number.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+  const pageCount = Math.ceil(filteredClients.length / pageSize);
+  const pageStartIndex = (currentPage - 1) * pageSize;
+  const visibleClients = filteredClients.slice(
+    pageStartIndex,
+    pageStartIndex + pageSize,
+  );
+  const firstVisibleClient = filteredClients.length ? pageStartIndex + 1 : 0;
+  const lastVisibleClient = Math.min(
+    pageStartIndex + pageSize,
+    filteredClients.length,
+  );
 
   if (status === "loading" || isLoading) {
     return (
@@ -145,6 +158,12 @@ export default function Dashboard() {
                 Welcome, {session?.user?.name}
               </span>
               <button
+                onClick={() => router.push("/account/password")}
+                className="rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200"
+              >
+                Change password
+              </button>
+              <button
                 onClick={handleLogout}
                 className="rounded-md bg-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-300"
               >
@@ -164,7 +183,10 @@ export default function Dashboard() {
               placeholder="Search clients by ID or name..."
               aria-label="Search clients by ID or name"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             />
           </div>
@@ -178,6 +200,25 @@ export default function Dashboard() {
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
           <div className="px-4 py-5 sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-end gap-3 text-sm text-gray-600">
+              <label className="flex items-center gap-2">
+                <span>Rows per page</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                >
+                  {[10, 25, 50, 100].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             {filteredClients.length === 0 ? (
               <div className="text-center text-gray-500">
                 {searchTerm
@@ -210,7 +251,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {filteredClients.map((client) => (
+                    {visibleClients.map((client) => (
                       <tr key={client.id}>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           <a
@@ -323,6 +364,35 @@ export default function Dashboard() {
                 </table>
               </div>
             )}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+              <span className="text-gray-600">
+                Showing {firstVisibleClient}-{lastVisibleClient} of{" "}
+                {filteredClients.length} clients
+              </span>
+              {filteredClients.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-600">
+                    Page {currentPage} of {pageCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => page - 1)}
+                    disabled={currentPage === 1}
+                    className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => page + 1)}
+                    disabled={currentPage === pageCount}
+                    className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>

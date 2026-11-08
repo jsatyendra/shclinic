@@ -493,32 +493,38 @@ export default function ClientForm({
               </button>
             </div>
             <div className="mt-4 space-y-3">
-              {Object.entries(medicationsByDate).map(([date, medications]) => (
-                <div key={date} className="">
-                  <h3 className="mb-2 text-sm font-medium text-gray-700 border-b pb-1">
-                    {date === "Unknown date"
-                      ? date
-                      : `Prescribed on ${new Date(`${date}T00:00:00`).toLocaleDateString()}`}
-                  </h3>
-                  <div className="space-y-2">
-                    {medications.map(({ medication, index }) => (
-                      <div
-                        key={`${medication.id}-${index}`}
-                        className="flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="font-medium">{medication.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {medication.dosage}
-                            {medication.duration &&
-                              ` for ${medication.duration}`}
-                          </p>
+              {Object.entries(medicationsByDate)
+                .sort(([firstDate], [secondDate]) => {
+                  if (firstDate === "Unknown date") return 1;
+                  if (secondDate === "Unknown date") return -1;
+                  return secondDate.localeCompare(firstDate);
+                })
+                .map(([date, medications]) => (
+                  <div key={date} className="">
+                    <h3 className="mb-2 text-sm font-medium text-gray-700 border-b pb-1">
+                      {date === "Unknown date"
+                        ? date
+                        : `Prescribed on ${new Date(`${date}T00:00:00`).toLocaleDateString()}`}
+                    </h3>
+                    <div className="space-y-2">
+                      {medications.map(({ medication, index }) => (
+                        <div
+                          key={`${medication.id}-${index}`}
+                          className="flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="font-medium">{medication.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {medication.dosage}
+                              {medication.duration &&
+                                ` for ${medication.duration}`}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </section>
           <section className="rounded-lg bg-white p-6 shadow">
@@ -579,26 +585,32 @@ export default function ClientForm({
               </button>
             </div>
             <div className="mt-4 space-y-3">
-              {Object.entries(labInvestigationsByDate).map(([date, labs]) => (
-                <div key={date} className="rounded-md">
-                  <h3 className="mb-2 text-sm font-medium text-gray-700 border-b pb-1">
-                    {date === "Unknown date"
-                      ? date
-                      : `Tested on ${new Date(`${date}T00:00:00`).toLocaleDateString()}`}
-                  </h3>
-                  <div className="space-y-2">
-                    {labs.map((lab, index) => (
-                      <div key={`${lab.id}-${index}`} className="">
-                        <p className="font-medium">{lab.testName}</p>
-                        <p className="text-sm text-gray-600">{lab.results}</p>
-                        {lab.notes && (
-                          <p className="text-sm text-gray-600">{lab.notes}</p>
-                        )}
-                      </div>
-                    ))}
+              {Object.entries(labInvestigationsByDate)
+                .sort(([firstDate], [secondDate]) => {
+                  if (firstDate === "Unknown date") return 1;
+                  if (secondDate === "Unknown date") return -1;
+                  return secondDate.localeCompare(firstDate);
+                })
+                .map(([date, labs]) => (
+                  <div key={date} className="rounded-md">
+                    <h3 className="mb-2 text-sm font-medium text-gray-700 border-b pb-1">
+                      {date === "Unknown date"
+                        ? date
+                        : `Tested on ${new Date(`${date}T00:00:00`).toLocaleDateString()}`}
+                    </h3>
+                    <div className="space-y-2">
+                      {labs.map((lab, index) => (
+                        <div key={`${lab.id}-${index}`} className="">
+                          <p className="font-medium">{lab.testName}</p>
+                          <p className="text-sm text-gray-600">{lab.results}</p>
+                          {lab.notes && (
+                            <p className="text-sm text-gray-600">{lab.notes}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </section>
           {rightColumnFooter}

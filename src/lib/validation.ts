@@ -53,6 +53,30 @@ export const clientCreateSchema = z.object({
 
 export const clientUpdateSchema = clientCreateSchema.partial();
 
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password must be 128 characters or fewer");
+
+export const userSeedSchema = z.object({
+  firstName: z.string().trim().min(1, "First name is required").max(100),
+  lastName: z.string().trim().min(1, "Last name is required").max(100),
+  gender: z.enum(["Male", "Female"]),
+  loginId: z.string().trim().min(1, "Login ID is required").max(100),
+  password: passwordSchema,
+});
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: passwordSchema,
+    confirmPassword: z.string().min(1, "Please confirm the new password"),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 export const documentCategorySchema = z.enum(["Report", "Prescription", "Image", "Other"]);
 
 export const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB

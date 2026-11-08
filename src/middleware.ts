@@ -5,6 +5,7 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isApiRoute = path.startsWith("/api/clients");
+  const isAuthApiRoute = path === "/api/auth/change-password";
 
   // Allow the database health check endpoint without auth
   if (isApiRoute && request.nextUrl.searchParams.get("check") === "true") {
@@ -20,7 +21,7 @@ export async function middleware(request: NextRequest) {
   });
 
   // API routes: return 401 JSON instead of redirecting
-  if (isApiRoute && !token) {
+  if ((isApiRoute || isAuthApiRoute) && !token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -38,5 +39,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/clients/:path*", "/login", "/api/clients/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/clients/:path*",
+    "/account/:path*",
+    "/login",
+    "/api/clients/:path*",
+    "/api/auth/change-password",
+  ],
 };

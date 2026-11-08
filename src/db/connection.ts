@@ -51,6 +51,22 @@ function initializeDatabase(): void {
 
   console.log('[Database] Running initialization');
   const db = getDbConnection();
+
+  // Authentication users are stored in SQLite; passwords are always bcrypt hashes.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      gender TEXT NOT NULL CHECK(gender IN ('Male', 'Female')),
+      login_id TEXT NOT NULL COLLATE NOCASE UNIQUE,
+      password_hash TEXT NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      password_changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
   
   // Create counter table for client IDs
   db.exec(`
